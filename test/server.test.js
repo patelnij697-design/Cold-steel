@@ -77,14 +77,16 @@ test('serves the multiplayer lobby and Socket.IO browser client', async () => {
   assert.match(html, /VERSION 1\.1\.5 · BATTLEFIELD EXPANSION/);
   assert.match(html, /id="loading-screen"/);
   assert.match(html, /id="skip-loading"/);
-  assert.match(html, /MISSION 01 · OPERATION STEEL RAIN/);
+  assert.match(html, /id="loading-caption">COLD STEEL</);
   assert.match(html, /class="loading-progress"/);
-  assert.match(html, /#vitals-card,\s*#weapon-card\s*\{\s*top:auto;\s*bottom:calc\(16px \+ env\(safe-area-inset-bottom\)\);/);
-  assert.match(html, /"slide jump fire"\s+"reload aim fire"\s+"swap use missile"\s+"loadout descend \."/);
-  assert.match(html, /data-mobile-action="fire"\]\s*\{\s*grid-area:fire;[\s\S]*?border-radius:50%/);
-  assert.match(html, /#mobile-stick \{[^}]*bottom:calc\(112px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(html, /id="grenade-hud"/);
+  assert.match(html, /id="map-selector"/);
+  assert.match(html, /#vitals-card\s*\{\s*top:\s*calc\(82px \+ env\(safe-area-inset-top\)\);/);
+  assert.match(html, /#weapon-card\s*\{\s*top:\s*auto !important;[\s\S]*?bottom:\s*calc\(138px \+ env\(safe-area-inset-bottom\)\) !important;/);
+  assert.match(html, /data-mobile-action="fire"\]\s*\{[\s\S]*?border-radius:\s*50%/);
+  assert.match(html, /#mobile-stick\s*\{[^}]*bottom:\s*calc\(14px \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(html, /function updateLoadingIntro/);
-  assert.match(html, /CINEMATIC INTRO \/\/ VERSION 1/);
+  assert.match(html, /class="loading-copy"/);
   assert.match(html, /id="toggle-intro-audio"/);
   assert.match(html, /const introScene = new THREE\.Scene\(\)/);
   assert.match(html, /const introApache = mkHeli/);
@@ -99,7 +101,7 @@ test('serves the multiplayer lobby and Socket.IO browser client', async () => {
   assert.match(html, /if \(becameDead && isVehicleEntity\(entity\)\)/);
   assert.match(html, /f\.kind === 'vehicle-explosion'/);
   assert.match(html, /const stairSteps = 14/);
-  assert.match(html, /new THREE\.PointLight\(0xffc56e, 7, 42, 2\)/);
+  assert.match(html, /const fireball = makeBlastPart\(new THREE\.SphereGeometry\(1, 16, 12\), 0xff5a1f, 0\.95\)/);
   assert.match(html, /const BOT_PATROL_COORDINATES = \[-260, -186, -112, -38, 38, 112, 186, 260\]/);
   assert.match(html, /const patrolCount = BOT_PATROL_COORDINATES\.length \*\* 2/);
   assert.doesNotMatch(html, /baseStayTimer/);
@@ -108,10 +110,14 @@ test('serves the multiplayer lobby and Socket.IO browser client', async () => {
   assert.match(html, /new THREE\.IcosahedronGeometry\(1, 2\)/);
   assert.match(html, /const variation = 1 \+ 0\.14 \* Math\.sin/);
   assert.match(html, /const makeVehiclePaint = color => new THREE\.MeshStandardMaterial/);
-  assert.match(html, /function mkInf\(colorHex\)/);
+  assert.match(html, /function mkInf\(colorHex, faction = 'usa'\)/);
   assert.match(html, /new THREE\.SphereGeometry\(0\.23, 12, 10\)/);
   assert.match(html, /function mkContainer\(x, z, rot = 0, colorIdx = 0\)/);
-  assert.match(html, /function mkAbandonedBuilding\(x, z\)/);
+  assert.match(html, /function buildIronvaleMap\(\)/);
+  assert.match(html, /function buildFrostportMap\(\)/);
+  assert.match(html, /function resolveAllEntityCollisions\(\)/);
+  assert.match(html, /function animateAvatar\(e, dt, now\)/);
+  assert.match(html, /function throwGrenade\(type = 'frag'/);
   assert.match(html, /new THREE\.DodecahedronGeometry\(s \* rnd\(0\.18, 0\.32\), 0\)/);
   assert.match(html, /const muzzleSleeve = new THREE\.Mesh/);
   assert.match(html, /if \(type === 'med'\)/);
@@ -121,8 +127,8 @@ test('serves the multiplayer lobby and Socket.IO browser client', async () => {
   assert.match(html, /claimNearestTeamVehicle\(bot\);/);
   assert.match(html, /claimNearestTeamVehicle\(e\);/);
   assert.match(html, /const index = \(slot \* 17 \+ visit \* 13\) % patrolCount/);
-  assert.match(html, /currentMode === 'ffa' \|\| other\.tm === e\.tm/);
-  assert.match(html, /const squadSize = currentMode === 'ffa' \? 12 : 7/);
+  assert.match(html, /\(currentMode === 'ffa' \|\| currentMode === 'br'\) \|\| other\.tm === e\.tm/);
+  assert.match(html, /const squadSize = \(currentMode === 'ffa' \|\| currentMode === 'br'\) \? 12 : 7/);
   assert.match(html, /findBotVehiclePath\(e\.p\.x, e\.p\.z, targetX, targetZ, navRadius\)/);
   assert.match(html, /for \(const z of \[-2\.7, -1\.62, -0\.54, 0\.54, 1\.62, 2\.7\]\)/);
   assert.match(html, /function getBaseWalkableHeight\(pos\)/);
@@ -147,18 +153,15 @@ test('serves the multiplayer lobby and Socket.IO browser client', async () => {
   assert.match(html, /id="room-player-list"/);
   assert.match(html, /id="active-player-count">—/);
   assert.match(html, /veh\.type === 'car' \|\| veh\.type === 'heli' \|\| veh\.type === 'tank' \|\| veh\.type === 'sam'/);
-  assert.match(html, /currentMode === 'ffa' \|\| veh\.tm === e\.tm/);
+  assert.match(html, /\(currentMode === 'ffa' \|\| currentMode === 'br'\) \|\| veh\.tm === e\.tm/);
   assert.match(html, /VERSION 1\.1\.10/);
-  assert.match(html, /VERSION 1\.2\.00 · PUBLIC MATCHMAKING & HUD/);
-  assert.match(html, /Game version 1\.2\.00/);
+  assert.match(html, /VERSION 1\.35\.00 · OUR UPDATE/);
+  assert.match(html, /Game version 1\.3\.00/);
   assert.match(html, /PLAYER STATISTICS/);
   assert.match(html, /TILL BOT BOARDING/);
 
   const packageInfo = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
-  assert.equal(packageInfo.version, '1.2.00');
-  const lockInfo = JSON.parse(await readFile(path.join(root, 'package-lock.json'), 'utf8'));
-  assert.equal(lockInfo.version, '1.2.00');
-  assert.equal(lockInfo.packages[''].version, '1.2.00');
+  assert.equal(packageInfo.version, '1.3.00');
 
   const sourcePath = await fetch(`${baseUrl}/server.js`);
   assert.equal(sourcePath.status, 200);
@@ -230,7 +233,7 @@ test('public rooms synchronize match state, combat actions, chat, and presence',
       new Promise(resolve => setTimeout(() => resolve(null), 100))
     ]);
     assert.equal(prematureStart, null);
-    assert.deepEqual(await matchStart, { mode: 'tdm', difficulty: 1, botsEnabled: true });
+    assert.deepEqual(await matchStart, { mode: 'tdm', difficulty: 1, botsEnabled: true, map: 'ironvale' });
 
     const roomChat = once(guest, 'chat:message');
     host.emit('chat:message', 'Ready to deploy');
@@ -241,6 +244,16 @@ test('public rooms synchronize match state, combat actions, chat, and presence',
       kind: 'shot', x: 1, y: 2, z: 3, dx: 0, dy: 0, dz: -1, damage: 25
     });
     assert.equal((await combatAction).playerId, guest.id);
+
+    await new Promise(resolve => setTimeout(resolve, 75));
+    const grenadeAction = once(host, 'combat:action');
+    guest.emit('combat:action', {
+      kind: 'grenade', grenadeType: 'frag', x: 1, y: 2, z: 3, dx: 6, dy: 8, dz: -12
+    });
+    const relayedGrenade = await grenadeAction;
+    assert.equal(relayedGrenade.playerId, guest.id);
+    assert.equal(relayedGrenade.kind, 'grenade');
+    assert.equal(relayedGrenade.grenadeType, 'frag');
 
     const playerDamage = once(guest, 'player:damage');
     host.emit('player:damage', {
@@ -320,8 +333,8 @@ test('private rooms use codes and reject unknown codes', async () => {
     assert.deepEqual(await botsDisabled, { botsEnabled: false });
 
     const matchStart = once(guest, 'match:start');
-    host.emit('match:start', { mode: 'tdm', difficulty: 2, botsEnabled: true });
-    assert.deepEqual(await matchStart, { mode: 'tdm', difficulty: 2, botsEnabled: false });
+    host.emit('match:start', { mode: 'tdm', difficulty: 2, botsEnabled: true, map: 'frostport' });
+    assert.deepEqual(await matchStart, { mode: 'tdm', difficulty: 2, botsEnabled: false, map: 'frostport' });
 
     const malformed = await join(stranger, { kind: 'private', action: 'join', roomCode: '12ab56' });
     assert.match(malformed.error, /six-digit/i);
@@ -342,5 +355,39 @@ test('private rooms use codes and reject unknown codes', async () => {
     clients.delete(host);
     clients.delete(guest);
     clients.delete(stranger);
+  }
+});
+
+test('public rooms track map votes and resolve nextMap on match end', async () => {
+  const host = await connectClient();
+  const guest = await connectClient();
+  try {
+    const hostRoom = await join(host, { kind: 'public', name: 'VoteHost', mode: 'tdm', map: 'ironvale' });
+    assert.equal(hostRoom.selectedMap, 'ironvale');
+    assert.deepEqual(hostRoom.mapVotes, { ironvale: 0, frostport: 0 });
+
+    const guestRoom = await join(guest, { kind: 'public', name: 'VoteGuest', mode: 'tdm' });
+    assert.equal(guestRoom.selectedMap, 'ironvale');
+
+    const voteUpdate = once(host, 'room:votes');
+    const guestFirstVote = once(guest, 'room:votes');
+    guest.emit('room:vote', { map: 'frostport' });
+    const [votePayload] = await Promise.all([voteUpdate, guestFirstVote]);
+    assert.equal(votePayload.mapVotes.frostport, 1);
+
+    const hostVoteUpdate = once(guest, 'room:votes');
+    host.emit('room:vote', { map: 'frostport' });
+    const hostVotePayload = await hostVoteUpdate;
+    assert.equal(hostVotePayload.mapVotes.frostport, 2);
+
+    const matchEndPromise = once(guest, 'match:end');
+    host.emit('match:end', { winnerTeam: 0 });
+    const matchEndPayload = await matchEndPromise;
+    assert.equal(matchEndPayload.nextMap, 'frostport');
+  } finally {
+    host.disconnect();
+    guest.disconnect();
+    clients.delete(host);
+    clients.delete(guest);
   }
 });

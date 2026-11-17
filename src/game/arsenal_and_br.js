@@ -21,10 +21,30 @@ export const NEW_WEAPONS = [
 
 export const ALL_WEAPONS = [...BASE_WEAPONS, ...NEW_WEAPONS];
 
+export const REPAIR_TOOL_WEAPON = {
+  n: 'Repair Tool',
+  lv: 1,
+  heal: 22,
+  dmg: 0,
+  rate: 0.14,
+  range: 8.5,
+  mag: 100,
+  rel: 2.2,
+  zoom: 1.15,
+  auto: 1,
+  cls: 'Field Engineering',
+  type: 'repair',
+  repairTool: true,
+  primaryActionLabel: 'REPAIR'
+};
+
+export const BR_PEACE_SECONDS = 30;
+
 export function createBRState() {
   return {
     active: true,
     phase: 'plane', // 'plane' | 'freefall' | 'ground'
+    peaceTimer: BR_PEACE_SECONDS,
     planePos: { x: -220, y: 95, z: -220 },
     planeDir: { x: Math.SQRT1_2, y: 0, z: Math.SQRT1_2 },
     planeSpeed: 28,

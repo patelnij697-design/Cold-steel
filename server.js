@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { fileURLToPath } from 'url';
 import { randomInt, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { Server } from 'socket.io';
+import { MAP_IDS, isValidMapId, tallyVotes, resolveWinningVote } from './src/game/collision_and_physics.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -270,7 +271,9 @@ function makeRoom(id, kind) {
     matchStartTimer: null,
     matchCountdownTimer: null,
     mode: 'tdm',
-    votes: new Map()
+    selectedMap: 'ironvale',
+    votes: new Map(),
+    mapVotes: new Map()
   };
   rooms.set(id, room);
   return room;
@@ -286,7 +289,11 @@ function roomSummary(room) {
     matchConfig: room.matchConfig,
     matchStartsAt: room.matchStartsAt,
     gameState: room.gameState,
-    botsEnabled: room.botsEnabled
+    botsEnabled: room.botsEnabled,
+    mode: room.mode,
+    selectedMap: room.selectedMap,
+    votes: tallyVotes(room.votes, ['tdm', 'ctf', 'ffa', 'br', 'koth']),
+    mapVotes: tallyVotes(room.mapVotes, MAP_IDS)
   };
 }
 
@@ -297,8 +304,11 @@ function sendPresence(room) {
 
 function schedulePublicMatch(room, requestedConfig = {}) {
   if (room.kind === 'private' || room.matchConfig || room.matchStartTimer) return;
+  const requestedMap = isValidMapId(requestedConfig.map) ? requestedConfig.map : (room.selectedMap || 'ironvale');
+  room.selectedMap = requestedMap;
   room.pendingMatchConfig = {
-    mode: ['tdm', 'ffa', 'ctf', 'br'].includes(requestedConfig.mode) ? requestedConfig.mode : 'tdm',
+    mode: ['tdm', 'ffa', 'ctf', 'br'].includes(requestedConfig.mode) ? requestedConfig.mode : (room.mode || 'tdm'),
+    map: requestedMap,
     difficulty: Math.max(0, Math.min(2, Number(requestedConfig.difficulty) || 0)),
     botsEnabled: room.botsEnabled
   };
@@ -399,7 +409,7 @@ io.on('connection', socket => {
     socket.data.roomId = room.id;
     socket.join(room.id);
     if (room.kind !== 'private' && !room.matchConfig) {
-      schedulePublicMatch(room, { mode: request.mode, difficulty: request.difficulty });
+      schedulePublicMatch(room, { mode: request.mode, map: request.map, difficulty: request.difficulty });
     }
     acknowledge({ ...roomSummary(room), player });
     socket.to(room.id).emit('player:joined', player);
@@ -443,8 +453,12 @@ io.on('connection', socket => {
   socket.on('match:start', config => {
     const room = rooms.get(socket.data.roomId);
     if (!room || room.kind !== 'private' || room.hostId !== socket.id || !config || !['tdm', 'ffa', 'ctf', 'br'].includes(config.mode)) return;
+    const chosenMap = isValidMapId(config.map) ? config.map : (room.selectedMap || 'ironvale');
+    room.mode = config.mode;
+    room.selectedMap = chosenMap;
     room.matchConfig = {
       mode: config.mode,
+      map: chosenMap,
       difficulty: Math.max(0, Math.min(2, Number(config.difficulty) || 0)),
       botsEnabled: room.botsEnabled
     };
@@ -461,34 +475,42 @@ io.on('connection', socket => {
 
   socket.on('room:vote', payload => {
     const room = rooms.get(socket.data.roomId);
-    if (!room) return;
-    const mode = payload?.mode;
-    if (!['tdm', 'ctf', 'ffa', 'br', 'koth'].includes(mode)) return;
-    room.votes.set(socket.id, mode);
-    const tally = { tdm: 0, ctf: 0, ffa: 0, br: 0, koth: 0 };
-    for (const v of room.votes.values()) {
-      if (tally[v] !== undefined) tally[v]++;
-    }
-    io.to(room.id).emit('room:votes', { votes: tally, currentMode: room.mode });
+    if (!room || !payload || typeof payload !== 'object') return;
+    const validModes = ['tdm', 'ctf', 'ffa', 'br', 'koth'];
+    const hasMode = validModes.includes(payload.mode);
+    const hasMap = isValidMapId(payload.map);
+    if (!hasMode && !hasMap) return;
+    if (hasMode) room.votes.set(socket.id, payload.mode);
+    if (hasMap) room.mapVotes.set(socket.id, payload.map);
+
+    const modeTally = tallyVotes(room.votes, validModes);
+    const mapTally = tallyVotes(room.mapVotes, MAP_IDS);
+    io.to(room.id).emit('room:votes', {
+      votes: modeTally,
+      currentMode: room.mode,
+      mapVotes: mapTally,
+      selectedMap: room.selectedMap
+    });
   });
 
   socket.on('match:end', result => {
     const room = rooms.get(socket.data.roomId);
     if (room && room.hostId === socket.id && Number.isInteger(result?.winnerTeam)) {
       if (room.votes.size > 0) {
-        const tally = {};
-        for (const v of room.votes.values()) tally[v] = (tally[v] || 0) + 1;
-        let bestMode = room.mode;
-        let bestCount = -1;
-        for (const [m, count] of Object.entries(tally)) {
-          if (count > bestCount) { bestCount = count; bestMode = m; }
-        }
-        room.mode = bestMode;
+        room.mode = resolveWinningVote(room.votes, ['tdm', 'ctf', 'ffa', 'br', 'koth'], room.mode);
         room.votes.clear();
       }
-      io.to(room.id).emit('match:end', { winnerTeam: result.winnerTeam, nextMode: room.mode });
+      if (room.mapVotes.size > 0) {
+        room.selectedMap = resolveWinningVote(room.mapVotes, MAP_IDS, room.selectedMap || 'ironvale');
+        room.mapVotes.clear();
+      }
+      io.to(room.id).emit('match:end', {
+        winnerTeam: result.winnerTeam,
+        nextMode: room.mode,
+        nextMap: room.selectedMap
+      });
       if (room.kind !== 'private' && room.matchConfig) {
-        const nextConfig = { ...room.matchConfig, mode: room.mode };
+        const nextConfig = { ...room.matchConfig, mode: room.mode, map: room.selectedMap };
         room.matchConfig = null;
         room.gameState = null;
         schedulePublicMatch(room, nextConfig);
@@ -511,8 +533,10 @@ io.on('connection', socket => {
     if (action.kind === 'shot') {
       if (!Number.isFinite(action.damage) || action.damage < 0 || action.damage > 1000) return;
     } else if (action.kind === 'missile') {
-      if (!['at', 'aa', 'agm', 'sam'].includes(action.missileType)) return;
+      if (!['at', 'aa', 'agm', 'sam', 'sam_kub', 'shell_120', 'shell_125'].includes(action.missileType)) return;
       if (action.targetId != null && typeof action.targetId !== 'string') return;
+    } else if (action.kind === 'grenade') {
+      if (!['frag', 'smoke'].includes(action.grenadeType)) return;
     } else {
       return;
     }
@@ -578,6 +602,8 @@ function leaveRoom(socket) {
   const room = rooms.get(socket.data.roomId);
   if (!room) return;
   room.players.delete(socket.id);
+  room.votes.delete(socket.id);
+  room.mapVotes.delete(socket.id);
   activePlayers = Math.max(0, activePlayers - 1);
   if (room.hostId === socket.id) {
     room.hostId = room.players.keys().next().value || null;
@@ -585,7 +611,9 @@ function leaveRoom(socket) {
       io.to(room.hostId).emit('host:changed', {
         matchConfig: room.matchConfig,
         gameState: room.gameState,
-        botsEnabled: room.botsEnabled
+        botsEnabled: room.botsEnabled,
+        mode: room.mode,
+        selectedMap: room.selectedMap
       });
     }
   }
