@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { after, before, test } from 'node:test';
 import { io } from 'socket.io-client';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const testUsersFile = path.join(os.tmpdir(), `cold-steel-test-users-${process.pid}-${Date.now()}.json`);
 let serverProcess;
 let baseUrl;
 const clients = new Set();
@@ -42,7 +44,7 @@ before(async () => {
   baseUrl = `http://127.0.0.1:${port}`;
   serverProcess = spawn(process.execPath, ['server.js'], {
     cwd: root,
-    env: { ...process.env, PORT: String(port), DEV_PANEL_KEY: 'test-secret-key' },
+    env: { ...process.env, PORT: String(port), DEV_PANEL_KEY: 'test-secret-key', USERS_FILE: testUsersFile },
     stdio: 'ignore'
   });
 
@@ -159,6 +161,12 @@ test('serves the multiplayer lobby and Socket.IO browser client', async () => {
   assert.match(html, /Game version 1\.3\.00/);
   assert.match(html, /PLAYER STATISTICS/);
   assert.match(html, /TILL BOT BOARDING/);
+  assert.match(html, /id="friends-modal"/);
+  assert.match(html, /Repair Wrench/);
+  assert.match(html, /Riot Shield/);
+  assert.match(html, /brState\.peaceTimer = 30/);
+  assert.match(html, /function mkBaseCRAM/);
+  assert.match(html, /function mkBaseMissileBattery/);
 
   const packageInfo = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   assert.equal(packageInfo.version, '1.3.00');
@@ -201,9 +209,10 @@ test('Render blueprint configures the app as a healthy Node web service', async 
   assert.equal(await health.text(), 'ok');
 });
 
-after(() => {
+after(async () => {
   clients.forEach(client => client.disconnect());
   if (serverProcess && serverProcess.exitCode === null) serverProcess.kill();
+  await rm(testUsersFile, { force: true }).catch(() => {});
 });
 
 test('public rooms synchronize match state, combat actions, chat, and presence', async () => {
@@ -389,5 +398,119 @@ test('public rooms track map votes and resolve nextMap on match end', async () =
     guest.disconnect();
     clients.delete(host);
     clients.delete(guest);
+  }
+});
+
+test('accounts support friend requests, acceptance, socket presence, room invites, and repair/bash combat actions', async () => {
+  const regAlpha = await fetch(`${baseUrl}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'AlphaOp', password: 'password123' })
+  });
+  assert.equal(regAlpha.status, 200);
+  const alphaData = await regAlpha.json();
+  assert.ok(alphaData.token);
+
+  const regBravo = await fetch(`${baseUrl}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'BravoOp', password: 'password123' })
+  });
+  assert.equal(regBravo.status, 200);
+  const bravoData = await regBravo.json();
+  assert.ok(bravoData.token);
+
+  const cAlpha = await connectClient();
+  const cBravo = await connectClient();
+  try {
+    const waitFriendsState = (socket, predicate, timeoutMs = 4000) => new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        socket.off('friends:updated', onUpdate);
+        reject(new Error('Timed out waiting for friends:updated state'));
+      }, timeoutMs);
+      function onUpdate(payload) {
+        if (predicate(payload)) {
+          clearTimeout(timer);
+          socket.off('friends:updated', onUpdate);
+          resolve(payload);
+        }
+      }
+      socket.on('friends:updated', onUpdate);
+    });
+
+    const alphaInit = waitFriendsState(cAlpha, () => true);
+    const bravoInit = waitFriendsState(cBravo, () => true);
+    cAlpha.emit('auth:identify', { token: alphaData.token });
+    cBravo.emit('auth:identify', { token: bravoData.token });
+    await Promise.all([alphaInit, bravoInit]);
+
+    const bravoUpdate = waitFriendsState(cBravo, p => p.incoming.some(f => f.username === 'AlphaOp'));
+    const reqRes = await fetch(`${baseUrl}/api/friends/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${alphaData.token}` },
+      body: JSON.stringify({ username: 'BravoOp' })
+    });
+    assert.equal(reqRes.status, 200);
+    const reqJson = await reqRes.json();
+    assert.equal(reqJson.outgoing[0]?.username, 'BravoOp');
+    const incomingPayload = await bravoUpdate;
+    assert.equal(incomingPayload.incoming[0]?.username, 'AlphaOp');
+
+    const alphaAccepted = waitFriendsState(cAlpha, p => p.friends.some(f => f.username === 'BravoOp' && f.online));
+    const acceptRes = await fetch(`${baseUrl}/api/friends/respond`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bravoData.token}` },
+      body: JSON.stringify({ username: 'AlphaOp', action: 'accept' })
+    });
+    assert.equal(acceptRes.status, 200);
+    const acceptJson = await acceptRes.json();
+    assert.equal(acceptJson.friends.some(f => f.username === 'AlphaOp' && f.online), true);
+    const alphaFriendsPayload = await alphaAccepted;
+    assert.equal(alphaFriendsPayload.friends.some(f => f.username === 'BravoOp' && f.online), true);
+
+    const createdRoom = await join(cAlpha, { kind: 'private', action: 'create', name: 'AlphaOp' });
+    const invitePromise = once(cBravo, 'friends:invite');
+    cAlpha.emit('friends:invite', { username: 'bravoop' });
+    const invite = await invitePromise;
+    assert.equal(invite.roomCode, createdRoom.roomCode);
+
+    await join(cBravo, { kind: 'private', action: 'join', roomCode: invite.roomCode, name: 'BravoOp' });
+    const repairActionPromise = once(cAlpha, 'combat:action');
+    cBravo.emit('combat:action', {
+      kind: 'repair',
+      x: 1, y: 2, z: 3,
+      dx: 0, dy: 0, dz: -1,
+      heal: 26,
+      targetId: 'entity-1'
+    });
+    const repairAction = await repairActionPromise;
+    assert.equal(repairAction.kind, 'repair');
+    assert.equal(repairAction.heal, 26);
+
+    await new Promise(resolve => setTimeout(resolve, 75));
+    const bashActionPromise = once(cAlpha, 'combat:action');
+    cBravo.emit('combat:action', {
+      kind: 'bash',
+      x: 1, y: 2, z: 3,
+      dx: 0, dy: 0, dz: -1,
+      damage: 38
+    });
+    const bashAction = await bashActionPromise;
+    assert.equal(bashAction.kind, 'bash');
+    assert.equal(bashAction.damage, 38);
+
+    const removeRes = await fetch(`${baseUrl}/api/friends/remove`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${alphaData.token}` },
+      body: JSON.stringify({ username: 'BravoOp' })
+    });
+    assert.equal(removeRes.status, 200);
+    const removeJson = await removeRes.json();
+    assert.equal(removeJson.friends.length, 0);
+  } finally {
+    cAlpha.disconnect();
+    cBravo.disconnect();
+    clients.delete(cAlpha);
+    clients.delete(cBravo);
   }
 });

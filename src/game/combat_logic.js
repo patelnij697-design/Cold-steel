@@ -99,6 +99,114 @@ export function isEnemyBaseProtectionActive(mode, brActive = false) {
   return true;
 }
 
+export function isFriendlyRepairTarget(playerTeam, vehicle, mode = 'tdm') {
+  if (!vehicle || vehicle.dead || !(vehicle.hp > 0)) return false;
+  if (mode === 'ffa' || mode === 'br') {
+    return vehicle.tm < 0 || vehicle.tm === playerTeam;
+  }
+  return vehicle.tm === playerTeam || vehicle.tm < 0;
+}
+
+export function resolveRepairAction({
+  playerTeam = 0,
+  vehicle = null,
+  distance = Infinity,
+  weapon = null
+} = {}) {
+  if (!weapon || (weapon.type !== 'repair' && !weapon.repairTool)) {
+    return { repaired: false, reason: 'not_repair_tool', healed: 0 };
+  }
+  const maxRange = Number.isFinite(weapon.range) ? weapon.range : 7.5;
+  if (!vehicle || vehicle.dead || !(vehicle.hp > 0)) {
+    return { repaired: false, reason: 'no_target', healed: 0 };
+  }
+  if (distance > maxRange) {
+    return { repaired: false, reason: 'out_of_range', healed: 0 };
+  }
+  if (vehicle.tm >= 0 && vehicle.tm !== playerTeam) {
+    return { repaired: false, reason: 'enemy_vehicle', healed: 0 };
+  }
+  const maxHp = vehicle.mhp || 100;
+  const maxEra = vehicle.maxEra || 0;
+  const currentEra = vehicle.reactiveArmor || 0;
+  if (vehicle.hp >= maxHp && currentEra >= maxEra) {
+    return { repaired: false, reason: 'full_health', healed: 0 };
+  }
+  const healAmt = Number.isFinite(weapon.heal) ? weapon.heal : 26;
+  const nextHp = Math.min(maxHp, vehicle.hp + healAmt);
+  const actualHeal = Math.max(0, nextHp - vehicle.hp);
+  let restoredEra = false;
+  if (nextHp >= maxHp && maxEra > 0 && currentEra < maxEra) {
+    restoredEra = true;
+  }
+  return {
+    repaired: true,
+    reason: 'repaired',
+    healed: actualHeal,
+    nextHp,
+    restoredEra
+  };
+}
+
+export function applyRiotShieldReduction({
+  damage = 0,
+  isShieldEquipped = false,
+  isBraced = false,
+  attackerPos = null,
+  targetPos = null,
+  targetYaw = 0,
+  bypassShield = false
+} = {}) {
+  if (!isShieldEquipped || bypassShield || damage <= 0) {
+    return { damage, blocked: false, multiplier: 1 };
+  }
+  let frontal = true;
+  if (attackerPos && targetPos) {
+    const dx = attackerPos.x - targetPos.x;
+    const dz = attackerPos.z - targetPos.z;
+    const len = Math.hypot(dx, dz);
+    if (len > 0.001) {
+      // Player forward direction in Three.js camera yaw: (-sin(yaw), -cos(yaw))
+      const fwdX = -Math.sin(targetYaw);
+      const fwdZ = -Math.cos(targetYaw);
+      const dot = (dx / len) * fwdX + (dz / len) * fwdZ;
+      frontal = dot >= 0.35; // ~140-degree frontal ballistic cone
+    }
+  }
+  if (!frontal) {
+    return { damage, blocked: false, multiplier: 1 };
+  }
+  const mult = isBraced ? 0.1 : 0.18;
+  return {
+    damage: Math.max(1, Math.round(damage * mult)),
+    blocked: true,
+    multiplier: mult
+  };
+}
+
+export function selectBaseDefenseTarget({
+  turretPos,
+  baseTeam,
+  candidates = [],
+  maxRange = 95,
+  mode = 'tdm',
+  brActive = false
+} = {}) {
+  if (!isEnemyBaseProtectionActive(mode, brActive) || !turretPos) return null;
+  let best = null;
+  let bestDist = maxRange;
+  for (const c of candidates) {
+    if (!c || c.dead || !(c.hp > 0)) continue;
+    if (c.tm < 0 || c.tm === baseTeam) continue;
+    const pos = c.p || c;
+    const d = Math.hypot(pos.x - turretPos.x, (pos.y || 0) - (turretPos.y || 0), pos.z - turretPos.z);
+    if (d <= bestDist) {
+      bestDist = d;
+      best = c;
+    }
+  }
+  return best ? { target: best, distance: bestDist } : null;
+}
 const VEHICLE_REPAIR_TYPES = new Set(['tank', 'heli', 'car', 'sam']);
 
 export function isFriendlyVehicleForRepair(vehicle, playerTeam) {

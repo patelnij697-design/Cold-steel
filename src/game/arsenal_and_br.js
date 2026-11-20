@@ -21,10 +21,21 @@ export const NEW_WEAPONS = [
 
 export const ALL_WEAPONS = [...BASE_WEAPONS, ...NEW_WEAPONS];
 
+export const EXPANSION_WEAPONS = [
+  { n: 'AK-74M Assault Rifle', lv: 1, dmg: 31, rate: 0.105, mag: 30, rel: 1.8, spr: 0.017, zoom: 2.2, spd: 430, auto: 1, cls: 'Assault Rifle', type: 'rifle', caliber: 'rifle' },
+  { n: 'MP5 Tactical SMG', lv: 2, dmg: 20, rate: 0.072, mag: 30, rel: 1.45, spr: 0.021, zoom: 1.7, spd: 345, auto: 1, cls: 'Submachine Gun', type: 'smg', caliber: 'smg' },
+  { n: 'AWM Bolt Sniper', lv: 3, dmg: 96, rate: 1.05, mag: 6, rel: 2.2, spr: 0.0015, zoom: 6.0, spd: 520, scope: 1, cls: 'Precision Sniper', type: 'sniper', caliber: 'sniper_50' },
+  { n: 'PKM Heavy Machine Gun', lv: 4, dmg: 30, rate: 0.095, mag: 120, rel: 4.5, spr: 0.032, zoom: 1.8, spd: 415, auto: 1, cls: 'Heavy Machine Gun', type: 'lmg', caliber: 'lmg' },
+  { n: 'M79 Thumper', lv: 4, dmg: 92, splash: 6.2, rate: 1.35, mag: 1, rel: 2.0, spr: 0.008, zoom: 1.6, spd: 68, explosive: true, cls: 'Grenade Launcher', type: 'launcher', caliber: 'at' },
+  { n: 'USP Tactical', lv: 2, dmg: 32, rate: 0.22, mag: 12, rel: 1.2, spr: 0.007, zoom: 1.5, spd: 330, cls: 'Suppressed Sidearm', type: 'pistol', caliber: 'pistol' }
+];
+
+export const ALL_COMBAT_WEAPONS = [...ALL_WEAPONS, ...EXPANSION_WEAPONS];
+
 export const REPAIR_TOOL_WEAPON = {
-  n: 'Repair Tool',
+  n: 'Repair Wrench',
   lv: 1,
-  heal: 22,
+  heal: 26,
   dmg: 0,
   rate: 0.14,
   range: 8.5,
@@ -36,6 +47,23 @@ export const REPAIR_TOOL_WEAPON = {
   type: 'repair',
   repairTool: true,
   primaryActionLabel: 'REPAIR'
+};
+
+export const RIOT_SHIELD_GEAR = {
+  n: 'Riot Shield',
+  lv: 1,
+  dmg: 38,
+  rate: 0.55,
+  range: 3.6,
+  mag: 1,
+  rel: 0.8,
+  zoom: 1.05,
+  cls: 'Tactical Gear',
+  type: 'shield',
+  shieldGear: true,
+  blockReduction: 0.82,
+  braceReduction: 0.9,
+  primaryActionLabel: 'BASH'
 };
 
 export const BR_PEACE_SECONDS = 30;

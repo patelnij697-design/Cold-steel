@@ -3,6 +3,11 @@ import assert from 'node:assert/strict';
 import {
   ALL_WEAPONS,
   NEW_WEAPONS,
+  EXPANSION_WEAPONS,
+  ALL_COMBAT_WEAPONS,
+  REPAIR_TOOL_WEAPON,
+  RIOT_SHIELD_GEAR,
+  BR_PEACE_SECONDS,
   createBRState,
   ejectFromC17,
   stepC17Flight,
@@ -12,16 +17,36 @@ import {
   stepSafeZone
 } from '../src/game/arsenal_and_br.js';
 
-test('new weapons are defined with valid combat stats', () => {
+test('new weapons and expansion arsenal are defined with valid combat stats', () => {
   assert.equal(NEW_WEAPONS.length, 4);
   assert.equal(ALL_WEAPONS.length, 15);
-  for (const w of NEW_WEAPONS) {
+  assert.equal(EXPANSION_WEAPONS.length, 6);
+  assert.equal(ALL_COMBAT_WEAPONS.length, 21);
+  for (const w of [...NEW_WEAPONS, ...EXPANSION_WEAPONS]) {
     assert.ok(w.n.length > 0);
     assert.ok(w.dmg > 0);
     assert.ok(w.rate > 0);
     assert.ok(w.mag > 0);
     assert.ok(w.rel > 0);
   }
+  const gl = EXPANSION_WEAPONS.find(w => w.n === 'M79 Thumper');
+  assert.equal(gl?.explosive, true);
+  assert.ok((gl?.splash || 0) >= 5);
+});
+
+test('repair wrench, riot shield gear, and 30s BR peace timer are configured properly', () => {
+  assert.equal(BR_PEACE_SECONDS, 30);
+  assert.equal(createBRState().peaceTimer, 30);
+  assert.equal(REPAIR_TOOL_WEAPON.n, 'Repair Wrench');
+  assert.equal(REPAIR_TOOL_WEAPON.type, 'repair');
+  assert.equal(REPAIR_TOOL_WEAPON.primaryActionLabel, 'REPAIR');
+  assert.ok(REPAIR_TOOL_WEAPON.heal > 0);
+
+  assert.equal(RIOT_SHIELD_GEAR.n, 'Riot Shield');
+  assert.equal(RIOT_SHIELD_GEAR.type, 'shield');
+  assert.equal(RIOT_SHIELD_GEAR.primaryActionLabel, 'BASH');
+  assert.equal(RIOT_SHIELD_GEAR.blockReduction, 0.82);
+  assert.equal(RIOT_SHIELD_GEAR.braceReduction, 0.9);
 });
 
 test('C-17 drop phase starts in plane, ejects on command, and deploys parachute', () => {

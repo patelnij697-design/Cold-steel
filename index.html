@@ -59,6 +59,7 @@
     body:not(.in-mission) #damage-flash,
     body:not(.in-mission) #damage-direction,
     body:not(.in-mission) #controls-dock,
+    body:not(.in-mission) #tutorial-tracker,
     body:not(.in-mission) #hud-world-canvas { visibility:hidden; }
     
     .tactical-panel {
@@ -1061,6 +1062,91 @@
       border-color: rgba(148, 163, 184, 0.2);
       color: #94a3b8;
     }
+    .friend-count-badge {
+      display: none;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #f59e0b;
+      color: #0b111a;
+      font: 700 10px var(--font-mono);
+      vertical-align: middle;
+    }
+    .friend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      text-align: left;
+    }
+    .friend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.78);
+    }
+    .friend-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+    .friend-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f8fafc;
+      font: 700 13px var(--font-display);
+      letter-spacing: 0.8px;
+    }
+    .friend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #64748b;
+      flex-shrink: 0;
+    }
+    .friend-dot.online {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+    .friend-sub {
+      color: #94a3b8;
+      font-size: 10px;
+    }
+    .friend-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .friend-actions .btn-secondary,
+    .friend-actions .btn-action {
+      margin: 0;
+      padding: 6px 11px;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+    #friend-invite-banner {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 65;
+      display: none;
+      max-width: 340px;
+      padding: 12px 14px;
+      border: 1px solid rgba(56, 189, 248, 0.55);
+      border-radius: 8px;
+      background: rgba(9, 15, 25, 0.95);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+      color: #e2e8f0;
+      text-align: left;
+    }
     #map-selector {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       margin-bottom: 10px;
@@ -1502,11 +1588,93 @@
       font:700 10px "JetBrains Mono",monospace;
       touch-action:manipulation;
     }
+    #tutorial-tracker {
+      display: none;
+      position: fixed;
+      top: 52px;
+      right: 16px;
+      width: 318px;
+      padding: 12px 14px;
+      z-index: 16;
+      pointer-events: auto;
+      font-variant-numeric: tabular-nums;
+    }
+    .tut-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .tut-step-kicker {
+      font: 700 10px var(--font-mono);
+      letter-spacing: 1px;
+      color: #f59e0b;
+    }
+    .tut-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+    .tut-summary {
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+    .tut-tasks {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .tut-task {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+    .tut-task.done {
+      color: #6ee7b7;
+      text-decoration: line-through;
+    }
+    .tut-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tut-actions button {
+      margin: 0;
+      padding: 6px 10px;
+      font-size: 10px;
+      min-height: 30px;
+      white-space: nowrap;
+    }
     /* Mobile layout overrides below handle HUD cards, joystick, and radial action pad */
 
     @media (pointer:coarse), (max-width:768px) {
       #controls-dock { display:none !important; }
       #players-online { display:none !important; }
+      #tutorial-tracker {
+        top: calc(54px + env(safe-area-inset-top));
+        right: calc(8px + env(safe-area-inset-right));
+        width: min(228px, 56vw);
+        padding: 8px 10px;
+      }
+      .tut-title { font-size: 13px; }
+      .tut-summary { font-size: 10px; margin-bottom: 6px; }
+      .tut-task { font-size: 10px; }
+      #center-banner {
+        top: 44%;
+        font-size: 16px;
+        max-width: 86vw;
+        letter-spacing: 1px;
+      }
 
       /* TOP-LEFT RADAR (Compact & Clean) */
       #radar-container {
@@ -1524,26 +1692,28 @@
         height: 68px;
       }
 
-      /* TOP HUD: Scores & Mode */
+      /* TOP HUD: Scores & Mode — framed strictly between radar and ARMORY/PAUSE */
       #top-hud {
         top: calc(8px + env(safe-area-inset-top));
-        left: 50%;
-        transform: translateX(-50%);
+        left: calc(80px + env(safe-area-inset-left));
+        right: calc(134px + env(safe-area-inset-right));
+        transform: none;
         width: auto;
-        min-width: 120px;
-        max-width: calc(100vw - 204px);
+        min-width: 0;
+        max-width: none;
         justify-content: center;
-        gap: 8px;
-        padding: 4px 10px;
+        gap: 6px;
+        padding: 4px 8px;
         background: rgba(9, 15, 25, 0.88);
         border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 16px;
+        overflow: hidden;
         z-index: 10;
       }
       .score-badge {
         gap: 4px;
-        font-size: clamp(11px, 3vw, 14px);
-        letter-spacing: 0.5px;
+        font-size: clamp(10px, 2.5vw, 13px);
+        letter-spacing: 0.3px;
       }
       .match-target { display:none; }
       #weather-badge {
@@ -2136,6 +2306,18 @@
     <div id="weather-badge" title="Click to cycle weather">☀ CLEAR</div>
   </div>
   <div class="hud-layer" id="players-online">ROOM PLAYERS: <span id="room-player-count">—</span></div>
+  <div class="hud-layer tactical-panel" id="tutorial-tracker" aria-live="polite">
+    <div class="tut-header">
+      <span class="tut-step-kicker" id="tut-step-label">STEP 1 / 6</span>
+      <button type="button" class="btn-secondary" id="btn-tut-exit" style="margin:0;padding:3px 8px;font-size:9px;min-height:24px;">EXIT</button>
+    </div>
+    <div class="tut-title" id="tut-title">MOBILITY &amp; SLIDE</div>
+    <div class="tut-summary" id="tut-summary">Move around the training yard and trigger a tactical slide to dodge fire.</div>
+    <div class="tut-tasks" id="tut-tasks"></div>
+    <div class="tut-actions" id="tut-actions">
+      <button type="button" class="btn-action" id="btn-tut-next" style="padding:6px 12px;font-size:10px;">SKIP STEP</button>
+    </div>
+  </div>
 
   <div class="hud-layer" id="radar-container">
     <canvas id="radar-canvas" width="140" height="140"></canvas>
@@ -2264,6 +2446,15 @@
     <span><b id="dock-pause-key">ESC</b> Tactical pause</span>
   </div>
 
+  <div id="friend-invite-banner" role="status" aria-live="polite">
+    <div style="font:700 10px var(--font-mono);color:#38bdf8;letter-spacing:1.2px;margin-bottom:4px;">SQUAD INVITATION</div>
+    <div id="friend-invite-text" style="font-size:12px;color:#f8fafc;margin-bottom:10px;line-height:1.4;"></div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn-action" id="btn-invite-join" style="padding:7px 14px;font-size:12px;">JOIN SQUAD</button>
+      <button type="button" class="btn-secondary" id="btn-invite-dismiss" style="margin:0;padding:7px 12px;font-size:12px;">DISMISS</button>
+    </div>
+  </div>
+
   <div class="menu-modal" id="main-menu-modal" style="display:none;">
     <div class="modal-box menu-home">
       <div class="menu-home-status">
@@ -2277,7 +2468,9 @@
       </p>
       <div class="menu-home-actions">
         <button class="btn-action" id="btn-main-play">PLAY</button>
+        <button class="btn-secondary" id="btn-main-tutorial">TRAINING TUTORIAL</button>
         <button class="btn-secondary" id="btn-main-account">OPERATOR ACCOUNT</button>
+        <button class="btn-secondary" id="btn-main-friends">FRIENDS <span class="friend-count-badge" id="main-friends-badge">0</span></button>
         <button class="btn-secondary" id="btn-main-leaderboard">LEADERBOARD</button>
         <button class="btn-secondary" id="btn-main-settings">SETTINGS</button>
         <button class="btn-secondary" id="btn-main-updates">UPDATES</button>
@@ -2304,7 +2497,10 @@
         <ul>
           <li>Overhauled Ironvale Canyon &amp; Airfield with true heightfield terrain, sculpted valley rim, canal &amp; 3 bridges, and industrial fuel depots.</li>
           <li>Made roads solid 3D objects, removed tan terrain mounds, and aligned all structures &amp; hitboxes to terrain elevation.</li>
-          <li>Fixed vehicle terrain following for tanks, SAM trucks, APCs, and helicopters, plus added enemy base anti-spawncamp defense.</li>
+          <li>Fixed vehicle terrain following for tanks, SAM trucks, APCs, and helicopters, plus added active C-RAM and ground missile base defenses.</li>
+          <li>Added Repair Wrench engineering tool (with 'Repair' primary action), ballistic Riot Shield tactical gear, and Accounts &amp; Friends with live squad invites.</li>
+          <li>Added 6 new tactical weapons: AK-74M Assault Rifle, MP5 Tactical SMG, AWM Bolt Sniper, PKM Heavy Machine Gun, M79 Thumper Grenade Launcher, and USP Tactical Suppressed.</li>
+          <li>Added interactive 6-step Training Tutorial with live range targets, Repair Wrench bay, armored vehicle drills, and +150 XP completion bonus.</li>
           <li>Converted on-foot aiming (ADS) to a toggle, added USA vs USSR team selection, and added Soviet-inspired T-80, Mi-24 Hind, 2K12 Kub, and BTR-80 models for USSR.</li>
         </ul>
       </section>
@@ -2319,7 +2515,7 @@
       <section class="update-release" aria-label="Version 1.3.00 updates">
         <h3>VERSION 1.3.00 · BATTLE ROYALE &amp; ARSENAL EXPANSION</h3>
         <ul>
-          <li>Added Battle Royale mode: 3rd-person C-17 deployment, unarmed drop, parachute &amp; ground weapon crates, 2.5-minute looting peace, and Players Remaining HUD.</li>
+          <li>Added Battle Royale mode: 3rd-person C-17 deployment, unarmed drop, parachute &amp; ground weapon crates, 30-second looting peace, and Players Remaining HUD.</li>
           <li>Added 4 new weapons: SCAR-H Battle Rifle, P90 PDW, AA-12 Auto Shotgun, and Desert Eagle .50.</li>
           <li>Added persistent burning vehicle wrecks with temporary terrain collision.</li>
         </ul>
@@ -2349,7 +2545,11 @@
     <div class="modal-box">
       <div class="menu-back-row">
         <button type="button" class="btn-secondary" id="btn-lobby-back">MAIN MENU</button>
-        <button type="button" class="btn-secondary" id="btn-lobby-settings">SETTINGS</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+          <button type="button" class="btn-secondary" id="btn-lobby-tutorial" style="margin:0;">TRAINING TUTORIAL</button>
+          <button type="button" class="btn-secondary" id="btn-lobby-friends" style="margin:0;">FRIENDS <span class="friend-count-badge" id="lobby-friends-badge">0</span></button>
+          <button type="button" class="btn-secondary" id="btn-lobby-settings" style="margin:0;">SETTINGS</button>
+        </div>
       </div>
       <h1 class="modal-title">DEPLOYMENT LOBBY</h1>
       <div class="modal-subtitle">CHOOSE YOUR BATTLE. DEPLOY WITH YOUR SQUAD.</div>
@@ -2547,6 +2747,45 @@
     </div>
   </div>
 
+  <div class="menu-modal" id="friends-modal" role="dialog" aria-modal="true" aria-labelledby="friends-title" style="display:none;">
+    <div class="modal-box" style="max-width:640px;">
+      <div class="menu-back-row">
+        <h2 class="modal-title" id="friends-title" style="font-size:28px;margin:0;">SQUAD FRIENDS</h2>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn-secondary" id="btn-friends-refresh" style="margin:0;">REFRESH</button>
+          <button type="button" class="btn-secondary" id="btn-friends-close" style="margin:0;">CLOSE</button>
+        </div>
+      </div>
+      <div class="modal-subtitle">LIVE PRESENCE · REQUESTS · PRIVATE SQUAD INVITES</div>
+
+      <div id="friends-logged-out-box" style="padding:18px;background:rgba(15,23,42,0.75);border:1px solid rgba(56,189,248,0.25);border-radius:8px;margin:12px 0;">
+        <p style="margin:0 0 12px;color:#cbd5e1;font-size:12px;line-height:1.6;">Sign in or create an Operator Account to add friends, track who is online, and send private room invites.</p>
+        <button type="button" class="btn-action" id="btn-friends-open-auth" style="padding:10px 26px;font-size:14px;">OPEN OPERATOR ACCOUNT</button>
+      </div>
+
+      <div id="friends-logged-in-box" style="display:none;text-align:left;">
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input id="friend-add-input" maxlength="20" placeholder="Enter operator username to add" aria-label="Friend username" style="flex:1;min-width:0;background:rgba(15,23,42,0.88);border:1px solid rgba(255,255,255,0.18);border-radius:6px;color:#f8fafc;padding:10px 12px;font-family:var(--font-mono);font-size:12px;">
+          <button type="button" class="btn-action" id="btn-friend-add" style="padding:10px 20px;font-size:13px;">ADD FRIEND</button>
+        </div>
+        <div id="friends-status" role="status" aria-live="polite" style="min-height:18px;font-size:11px;color:#38bdf8;margin-bottom:10px;"></div>
+
+        <div id="friends-incoming-wrap" style="display:none;margin-bottom:14px;">
+          <div style="font:700 11px var(--font-mono);color:#fbbf24;letter-spacing:1.2px;margin-bottom:6px;">INCOMING REQUESTS</div>
+          <div class="friend-list" id="friends-incoming-list"></div>
+        </div>
+
+        <div style="font:700 11px var(--font-mono);color:#38bdf8;letter-spacing:1.2px;margin-bottom:6px;">FRIENDS ROSTER</div>
+        <div class="friend-list" id="friends-list"></div>
+
+        <div id="friends-outgoing-wrap" style="display:none;margin-top:14px;">
+          <div style="font:700 11px var(--font-mono);color:#94a3b8;letter-spacing:1.2px;margin-bottom:6px;">SENT REQUESTS</div>
+          <div class="friend-list" id="friends-outgoing-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Operator Account Modal (Cross-browser Username & Password) -->
   <div class="menu-modal" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title" style="display:none;">
     <div class="modal-box" style="max-width:480px;">
@@ -2588,9 +2827,10 @@
             <div>VICTORIES: <b id="auth-stat-wins">0</b></div>
           </div>
         </div>
-        <div style="display:flex;gap:10px;">
-          <button type="button" class="btn-action" id="btn-auth-sync" style="flex:1;">SYNC STATS NOW</button>
-          <button type="button" class="btn-secondary" id="btn-auth-logout" style="flex:1;">LOG OUT</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn-action" id="btn-auth-sync" style="flex:1;padding:11px 14px;font-size:13px;">SYNC STATS</button>
+          <button type="button" class="btn-secondary" id="btn-auth-friends" style="flex:1;margin:0;padding:11px 14px;font-size:13px;">FRIENDS</button>
+          <button type="button" class="btn-secondary" id="btn-auth-logout" style="flex:1;margin:0;padding:11px 14px;font-size:13px;">LOG OUT</button>
         </div>
       </div>
     </div>
@@ -3162,6 +3402,259 @@
         }
       }
 
+      let friendsState = { friends: [], incoming: [], outgoing: [] };
+      let pendingFriendInvite = null;
+
+      function identifyAccountSocket() {
+        if (typeof netSocket !== 'undefined' && netSocket && netSocket.connected) {
+          netSocket.emit('auth:identify', { token: currentAuth?.token || null });
+        }
+      }
+
+      function updateFriendsBadges() {
+        const pendingCount = friendsState.incoming.length;
+        ['main-friends-badge', 'lobby-friends-badge'].forEach(id => {
+          const el = $(id);
+          if (!el) return;
+          el.textContent = String(pendingCount);
+          el.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        });
+      }
+
+      function renderFriendsModal() {
+        const loggedOut = $('friends-logged-out-box');
+        const loggedIn = $('friends-logged-in-box');
+        if (!currentAuth) {
+          if (loggedOut) loggedOut.style.display = 'block';
+          if (loggedIn) loggedIn.style.display = 'none';
+          return;
+        }
+        if (loggedOut) loggedOut.style.display = 'none';
+        if (loggedIn) loggedIn.style.display = 'block';
+
+        const incWrap = $('friends-incoming-wrap');
+        const incList = $('friends-incoming-list');
+        incList.replaceChildren();
+        if (friendsState.incoming.length) {
+          incWrap.style.display = 'block';
+          friendsState.incoming.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'friend-row';
+            row.innerHTML = `
+              <div class="friend-meta">
+                <div class="friend-name"><span class="friend-dot ${item.online ? 'online' : ''}"></span><span></span></div>
+                <div class="friend-sub">LVL ${item.operatorLevel || 1} · Wants to join your squad</div>
+              </div>
+              <div class="friend-actions">
+                <button type="button" class="btn-action" data-friend-accept="">ACCEPT</button>
+                <button type="button" class="btn-secondary" data-friend-decline="">DECLINE</button>
+              </div>`;
+            row.querySelector('.friend-name span:last-child').textContent = item.username;
+            row.querySelector('[data-friend-accept]').dataset.friendAccept = item.username;
+            row.querySelector('[data-friend-decline]').dataset.friendDecline = item.username;
+            incList.appendChild(row);
+          });
+        } else {
+          incWrap.style.display = 'none';
+        }
+
+        const fList = $('friends-list');
+        fList.replaceChildren();
+        if (!friendsState.friends.length) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'padding:14px;border:1px dashed rgba(148,163,184,0.22);border-radius:6px;color:#94a3b8;font-size:12px;text-align:center;';
+          empty.textContent = 'No squad friends added yet. Enter an operator username above to send a request.';
+          fList.appendChild(empty);
+        } else {
+          friendsState.friends.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'friend-row';
+            const roomText = !item.online ? 'Offline' : item.roomCode ? `Online · Private ${item.roomCode}` : item.roomKind ? `Online · ${item.roomKind.toUpperCase()}` : 'Online · In Menu';
+            row.innerHTML = `
+              <div class="friend-meta">
+                <div class="friend-name"><span class="friend-dot ${item.online ? 'online' : ''}"></span><span></span></div>
+                <div class="friend-sub">LVL ${item.operatorLevel || 1} · ${roomText}</div>
+              </div>
+              <div class="friend-actions"></div>`;
+            row.querySelector('.friend-name span:last-child').textContent = item.username;
+            const actions = row.querySelector('.friend-actions');
+            if (item.online && networked) {
+              const invBtn = document.createElement('button');
+              invBtn.type = 'button';
+              invBtn.className = 'btn-action';
+              invBtn.textContent = 'INVITE';
+              invBtn.dataset.friendInvite = item.username;
+              actions.appendChild(invBtn);
+            }
+            if (item.online && item.roomCode && !networked) {
+              const joinBtn = document.createElement('button');
+              joinBtn.type = 'button';
+              joinBtn.className = 'btn-action';
+              joinBtn.textContent = 'JOIN';
+              joinBtn.dataset.friendJoinCode = item.roomCode;
+              actions.appendChild(joinBtn);
+            }
+            const remBtn = document.createElement('button');
+            remBtn.type = 'button';
+            remBtn.className = 'btn-secondary';
+            remBtn.textContent = 'REMOVE';
+            remBtn.dataset.friendRemove = item.username;
+            actions.appendChild(remBtn);
+            fList.appendChild(row);
+          });
+        }
+
+        const outWrap = $('friends-outgoing-wrap');
+        const outList = $('friends-outgoing-list');
+        outList.replaceChildren();
+        if (friendsState.outgoing.length) {
+          outWrap.style.display = 'block';
+          friendsState.outgoing.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'friend-row';
+            row.innerHTML = `
+              <div class="friend-meta">
+                <div class="friend-name"><span class="friend-dot ${item.online ? 'online' : ''}"></span><span></span></div>
+                <div class="friend-sub">Pending acceptance · LVL ${item.operatorLevel || 1}</div>
+              </div>`;
+            row.querySelector('.friend-name span:last-child').textContent = item.username;
+            outList.appendChild(row);
+          });
+        } else {
+          outWrap.style.display = 'none';
+        }
+      }
+
+      function applyFriendsPayload(payload) {
+        friendsState = {
+          friends: Array.isArray(payload?.friends) ? payload.friends : [],
+          incoming: Array.isArray(payload?.incoming) ? payload.incoming : [],
+          outgoing: Array.isArray(payload?.outgoing) ? payload.outgoing : []
+        };
+        updateFriendsBadges();
+        renderFriendsModal();
+      }
+
+      async function refreshFriends() {
+        if (!currentAuth) {
+          applyFriendsPayload({ friends: [], incoming: [], outgoing: [] });
+          return;
+        }
+        try {
+          const res = await fetch('/api/friends', {
+            headers: { 'Authorization': `Bearer ${currentAuth.token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            applyFriendsPayload(data);
+          }
+        } catch (err) {
+          console.warn('Friends refresh error:', err);
+        }
+      }
+
+      async function sendFriendRequest() {
+        if (!currentAuth) return;
+        const input = $('friend-add-input');
+        const status = $('friends-status');
+        const username = (input?.value || '').trim();
+        if (!username) { status.style.color = '#f43f5e'; status.textContent = 'Enter an operator username first.'; return; }
+        status.style.color = '#38bdf8';
+        status.textContent = 'Sending request…';
+        try {
+          const res = await fetch('/api/friends/request', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentAuth.token}`
+            },
+            body: JSON.stringify({ username })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            status.style.color = '#f43f5e';
+            status.textContent = data.error || 'Could not send request.';
+            return;
+          }
+          input.value = '';
+          status.style.color = '#10b981';
+          status.textContent = data.status === 'accepted'
+            ? `${username.toUpperCase()} added to your friends list!`
+            : `Friend request sent to ${username.toUpperCase()}.`;
+          applyFriendsPayload(data);
+        } catch {
+          status.style.color = '#f43f5e';
+          status.textContent = 'Network error sending request.';
+        }
+      }
+
+      async function respondFriendRequest(username, action) {
+        if (!currentAuth) return;
+        try {
+          const res = await fetch('/api/friends/respond', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentAuth.token}`
+            },
+            body: JSON.stringify({ username, action })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            applyFriendsPayload(data);
+            $('friends-status').style.color = '#10b981';
+            $('friends-status').textContent = action === 'accept' ? `Accepted ${username.toUpperCase()}.` : `Declined ${username.toUpperCase()}.`;
+          }
+        } catch {}
+      }
+
+      async function removeFriend(username) {
+        if (!currentAuth) return;
+        try {
+          const res = await fetch('/api/friends/remove', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentAuth.token}`
+            },
+            body: JSON.stringify({ username })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            applyFriendsPayload(data);
+            $('friends-status').style.color = '#cbd5e1';
+            $('friends-status').textContent = `Removed ${username.toUpperCase()}.`;
+          }
+        } catch {}
+      }
+
+      function joinFriendRoomCode(code) {
+        if (!code || !/^\d{6}$/.test(String(code).trim())) return;
+        $('friends-modal').style.display = 'none';
+        $('main-menu-modal').style.display = 'none';
+        $('lobby-modal').style.display = 'flex';
+        sessionMode = 'private';
+        if (networked) leaveOnlineRoom();
+        $('room-code-input').value = String(code).trim();
+        buildLobbyUI();
+        joinOnlineRoom('private', 'join', String(code).trim());
+      }
+
+      function showFriendInviteBanner(invite) {
+        if (!invite || !invite.from) return;
+        pendingFriendInvite = invite;
+        const roomDesc = invite.roomCode ? `Private Room ${invite.roomCode}` : `${(invite.roomKind || 'public').toUpperCase()} Room`;
+        $('friend-invite-text').textContent = `${invite.from} invited you to join ${roomDesc}.`;
+        $('friend-invite-banner').style.display = 'block';
+      }
+
+      function openFriendsModal() {
+        if ($('friends-status')) $('friends-status').textContent = '';
+        renderFriendsModal();
+        $('friends-modal').style.display = 'flex';
+        refreshFriends();
+      }
+
       function onAuthSuccess(auth) {
         currentAuth = auth;
         localStorage.setItem('cos_auth_token', auth.token);
@@ -3178,6 +3671,8 @@
         }
         $('btn-main-account').textContent = `OPERATOR: ${auth.username.toUpperCase()}`;
         updateAuthModalView();
+        identifyAccountSocket();
+        refreshFriends();
       }
 
       function updateAuthModalView() {
@@ -3275,6 +3770,8 @@
         currentAuth = null;
         localStorage.removeItem('cos_auth_token');
         updateAuthModalView();
+        applyFriendsPayload({ friends: [], incoming: [], outgoing: [] });
+        identifyAccountSocket();
         bannerMsg('LOGGED OUT OF OPERATOR TERMINAL');
       }
 
@@ -3393,7 +3890,79 @@
         $('chat-panel').style.display = networked ? 'block' : 'none';
         buildLobbyUI();
       };
+      $('btn-main-tutorial').onclick = () => startTutorial();
+      $('btn-lobby-tutorial').onclick = () => startTutorial();
+      $('btn-tut-exit').onclick = () => exitTutorial('menu');
+      $('tutorial-tracker').addEventListener('click', e => {
+        if (e.target.closest('#btn-tut-next')) {
+          if (!tutorialState || !tutorialState.active) return;
+          const res = advanceTutorialStep(tutorialState);
+          if (res.finished && res.rewardXp > 0) {
+            gainXP(res.rewardXp);
+            saveOperatorStats();
+            bannerMsg(`TRAINING COMPLETE · +${res.rewardXp} XP EARNED!`);
+            playSnd(620, 0.28, 0.25, 'triangle', 920);
+          } else if (res.advanced) {
+            playSnd(440, 0.1, 0.16, 'triangle');
+          }
+          renderTutorialTracker();
+          return;
+        }
+        if (e.target.closest('#btn-tut-deploy')) {
+          exitTutorial('lobby');
+          return;
+        }
+        if (e.target.closest('#btn-tut-menu')) {
+          exitTutorial('menu');
+        }
+      });
       $('btn-main-account').onclick = openAuthModal;
+      $('btn-main-friends').onclick = openFriendsModal;
+      $('btn-lobby-friends').onclick = openFriendsModal;
+      $('btn-auth-friends').onclick = () => { $('auth-modal').style.display = 'none'; openFriendsModal(); };
+      $('btn-friends-open-auth').onclick = () => { $('friends-modal').style.display = 'none'; openAuthModal(); };
+      $('btn-friends-close').onclick = () => { $('friends-modal').style.display = 'none'; };
+      $('btn-friends-refresh').onclick = refreshFriends;
+      $('btn-friend-add').onclick = sendFriendRequest;
+      $('friend-add-input').onkeydown = e => { if (e.key === 'Enter') sendFriendRequest(); };
+      $('friends-modal').addEventListener('click', e => {
+        const acceptBtn = e.target.closest('[data-friend-accept]');
+        if (acceptBtn) return respondFriendRequest(acceptBtn.dataset.friendAccept, 'accept');
+        const declineBtn = e.target.closest('[data-friend-decline]');
+        if (declineBtn) return respondFriendRequest(declineBtn.dataset.friendDecline, 'decline');
+        const inviteBtn = e.target.closest('[data-friend-invite]');
+        if (inviteBtn && netSocket?.connected) {
+          netSocket.emit('friends:invite', { username: inviteBtn.dataset.friendInvite });
+          $('friends-status').style.color = '#10b981';
+          $('friends-status').textContent = `Invite sent to ${inviteBtn.dataset.friendInvite.toUpperCase()}.`;
+          return;
+        }
+        const joinBtn = e.target.closest('[data-friend-join-code]');
+        if (joinBtn) return joinFriendRoomCode(joinBtn.dataset.friendJoinCode);
+        const remBtn = e.target.closest('[data-friend-remove]');
+        if (remBtn) return removeFriend(remBtn.dataset.friendRemove);
+      });
+      $('btn-invite-dismiss').onclick = () => {
+        $('friend-invite-banner').style.display = 'none';
+        pendingFriendInvite = null;
+      };
+      $('btn-invite-join').onclick = () => {
+        const inv = pendingFriendInvite;
+        $('friend-invite-banner').style.display = 'none';
+        pendingFriendInvite = null;
+        if (!inv) return;
+        if (inv.roomCode) {
+          joinFriendRoomCode(inv.roomCode);
+        } else if (inv.roomKind === 'public' || inv.roomKind === 'public-bots') {
+          $('friends-modal').style.display = 'none';
+          $('main-menu-modal').style.display = 'none';
+          $('lobby-modal').style.display = 'flex';
+          sessionMode = inv.roomKind;
+          if (networked) leaveOnlineRoom();
+          buildLobbyUI();
+          joinOnlineRoom(inv.roomKind, 'join');
+        }
+      };
       $('btn-main-leaderboard').onclick = openLeaderboardModal;
       $('btn-main-dev').onclick = openDevModal;
       $('btn-settings-dev').onclick = openDevModal;
@@ -4500,6 +5069,116 @@
       mkWatchtower(b[0] + sign * 34, b[1] + sign * 34);
       mkContainer(b[0] - sign * 12, b[1] - sign * 24, 0, teamIdx);
       mkContainer(b[0] - sign * 16, b[1] - sign * 24, 0, teamIdx + 1);
+      mkBaseCRAM(b[0] - sign * 33, b[1] + sign * 33, teamIdx, arctic);
+      mkBaseCRAM(b[0] + sign * 33, b[1] - sign * 33, teamIdx, arctic);
+      mkBaseMissileBattery(b[0] - sign * 34, b[1] - sign * 4, teamIdx, arctic);
+      mkBaseMissileBattery(b[0] - sign * 4, b[1] - sign * 34, teamIdx, arctic);
+    }
+
+    function mkBaseCRAM(x, z, teamIdx, arctic = false) {
+      const ty = Math.max(0.04, getTerrainHeight(x, z));
+      const g = new THREE.Group();
+      const teamAccent = teamIdx ? mats.teamRed : mats.teamBlue;
+      box(3.4, 1.4, 3.4, arctic ? mats.steelLight : mats.concrete, 0, 0.7, 0, g);
+      cyl(1.35, 1.5, 0.55, 10, mats.steelDark, 0, 1.65, 0, g);
+
+      const rotHead = new THREE.Group();
+      rotHead.position.set(0, 2.0, 0);
+      box(1.5, 1.35, 1.8, mats.steelLight, 0, 0.65, 0, rotHead);
+      box(1.56, 0.22, 1.84, teamAccent, 0, 0.25, 0, rotHead);
+      const radome = new THREE.Mesh(new THREE.SphereGeometry(0.62, 10, 8), mats.whitePaint);
+      radome.scale.set(1, 1.55, 1);
+      radome.position.set(0, 1.75, -0.2);
+      rotHead.add(radome);
+      box(1.1, 0.28, 0.22, mats.hazardStripe, 0, 1.55, 0.75, rotHead);
+
+      const barrelGroup = new THREE.Group();
+      barrelGroup.position.set(0, 0.72, 1.45);
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2;
+        const bMesh = cyl(0.055, 0.055, 1.9, 6, mats.steelDark, Math.cos(ang) * 0.14, Math.sin(ang) * 0.14, 0.5, barrelGroup);
+        bMesh.rotation.x = Math.PI / 2;
+      }
+      const barrelRing = cyl(0.22, 0.22, 0.16, 10, mats.hazardStripe, 0, 0, 1.1, barrelGroup);
+      barrelRing.rotation.x = Math.PI / 2;
+      const muzzleGlow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.24, 8, 6),
+        new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0 })
+      );
+      muzzleGlow.position.set(0, 0, 1.65);
+      barrelGroup.add(muzzleGlow);
+
+      rotHead.add(barrelGroup);
+      g.add(rotHead);
+      g.position.set(x, ty, z);
+      mapGroup.add(g);
+      OM.push(g);
+      OB.push({ x, z, hw: 1.8, hd: 1.8, minY: ty, h: ty + 4.8, rot: 0 });
+      const body = new CANNON.Body({ mass: 0 });
+      body.addShape(new CANNON.Box(new CANNON.Vec3(1.8, 2.4, 1.8)));
+      body.position.set(x, ty + 2.4, z);
+      registerMapBody(body);
+
+      BASE_DEFENSES.push({
+        kind: 'cram',
+        team: teamIdx,
+        p: new V3(x, ty + 2.8, z),
+        head: rotHead,
+        barrel: barrelGroup,
+        flash: muzzleGlow,
+        cd: 0,
+        flashTimer: 0,
+        sweepAngle: teamIdx ? Math.PI * 1.25 : Math.PI * 0.25
+      });
+    }
+
+    function mkBaseMissileBattery(x, z, teamIdx, arctic = false) {
+      const ty = Math.max(0.04, getTerrainHeight(x, z));
+      const g = new THREE.Group();
+      const teamAccent = teamIdx ? mats.teamRed : mats.teamBlue;
+      box(3.8, 1.2, 3.8, arctic ? mats.steelLight : mats.concrete, 0, 0.6, 0, g);
+      cyl(1.45, 1.65, 0.5, 10, mats.steelDark, 0, 1.45, 0, g);
+
+      const rotHead = new THREE.Group();
+      rotHead.position.set(0, 1.8, 0);
+      box(1.9, 1.0, 1.7, mats.steelDark, 0, 0.5, 0, rotHead);
+      box(1.96, 0.22, 1.74, teamAccent, 0, 0.9, 0, rotHead);
+
+      const radarMast = box(0.28, 1.0, 0.28, mats.steelLight, 0, 1.45, -0.5, rotHead);
+      box(1.3, 0.42, 0.16, mats.hazardStripe, 0, 0.55, 0, radarMast);
+
+      const pod = new THREE.Group();
+      pod.position.set(0, 1.35, 0.25);
+      pod.rotation.x = -0.35;
+      box(2.1, 1.15, 2.4, mats.camoGreen, 0, 0, 0, pod);
+      for (const tx of [-0.55, 0.55]) {
+        for (const tyOff of [-0.26, 0.26]) {
+          const tube = cyl(0.22, 0.22, 2.55, 8, mats.steelDark, tx, tyOff, 0.05, pod);
+          tube.rotation.x = Math.PI / 2;
+          const cap = cyl(0.18, 0.18, 0.14, 8, mats.teamRed, tx, tyOff, 1.32, pod);
+          cap.rotation.x = Math.PI / 2;
+        }
+      }
+      rotHead.add(pod);
+      g.add(rotHead);
+      g.position.set(x, ty, z);
+      mapGroup.add(g);
+      OM.push(g);
+      OB.push({ x, z, hw: 2.0, hd: 2.0, minY: ty, h: ty + 4.4, rot: 0 });
+      const body = new CANNON.Body({ mass: 0 });
+      body.addShape(new CANNON.Box(new CANNON.Vec3(2.0, 2.2, 2.0)));
+      body.position.set(x, ty + 2.2, z);
+      registerMapBody(body);
+
+      BASE_DEFENSES.push({
+        kind: 'missile',
+        team: teamIdx,
+        p: new V3(x, ty + 3.4, z),
+        head: rotHead,
+        radar: radarMast,
+        cd: 1.5 + Math.random() * 1.2,
+        sweepAngle: teamIdx ? Math.PI * 1.25 : Math.PI * 0.25
+      });
     }
 
     function mkCQBCompound(x, z, doorDir = 0) {
@@ -4605,6 +5284,7 @@
       addWalkableSurface({ x, z, hw: 7.4, hd: 6.8, y: ty + 4.25, rot });
     }
 
+    const BASE_DEFENSES = [];
     const GRENADES = [];
     const SMOKES = [];
     const botNavGrids = new Map();
@@ -4613,6 +5293,7 @@
       while (mapGroup.children.length > 0) {
         mapGroup.remove(mapGroup.children[0]);
       }
+      BASE_DEFENSES.length = 0;
       OB.length = 0;
       OM.length = 0;
       WALKABLES.length = 0;
@@ -4719,27 +5400,28 @@
       mkBase(0, false);
       mkBase(1, false);
 
+      const isTutorialCorridor = (px, pz) => Math.abs(pz + 215) < 22 && px >= -145 && px <= -65;
       const groveCenters = [[-165, 55], [165, -55], [-75, -185], [75, 185], [-210, -105], [210, 105]];
       for (const [gx, gz] of groveCenters) {
         for (let t = 0; t < 8; t++) {
           const tx = gx + rnd(-26, 26), tz = gz + rnd(-26, 26);
-          if (Math.hypot(tx, tz) < 28) continue;
+          if (Math.hypot(tx, tz) < 28 || isTutorialCorridor(tx, tz)) continue;
           mkTree(tx, tz, rnd(0.85, 1.45), false);
         }
       }
       for (let i = 0; i < 20; i++) {
         const tx = rnd(-265, 265), tz = rnd(-265, 265);
-        if (Math.hypot(tx, tz) < 28 || Math.hypot(tx + 215, tz + 215) < 58 || Math.hypot(tx - 215, tz - 215) < 58) continue;
+        if (Math.hypot(tx, tz) < 28 || Math.hypot(tx + 215, tz + 215) < 58 || Math.hypot(tx - 215, tz - 215) < 58 || isTutorialCorridor(tx, tz)) continue;
         mkTree(tx, tz, rnd(0.8, 1.35), false);
       }
       for (let i = 0; i < 42; i++) {
         const rx = rnd(-260, 260), rz = rnd(-260, 260);
-        if (Math.hypot(rx, rz) < 24 || Math.hypot(rx + 215, rz + 215) < 54 || Math.hypot(rx - 215, rz - 215) < 54) continue;
+        if (Math.hypot(rx, rz) < 24 || Math.hypot(rx + 215, rz + 215) < 54 || Math.hypot(rx - 215, rz - 215) < 54 || isTutorialCorridor(rx, rz)) continue;
         mkRock(rx, rz, rnd(1.8, 4.6), false);
       }
       for (let i = 0; i < 18; i++) {
         const cx = rnd(-225, 225), cz = rnd(-225, 225);
-        if (Math.hypot(cx, cz) < 28 || Math.hypot(cx + 215, cz + 215) < 62 || Math.hypot(cx - 215, cz - 215) < 62) continue;
+        if (Math.hypot(cx, cz) < 28 || Math.hypot(cx + 215, cz + 215) < 62 || Math.hypot(cx - 215, cz - 215) < 62 || isTutorialCorridor(cx, cz)) continue;
         mkContainer(cx, cz, rnd(0, Math.PI), i);
       }
 
@@ -6127,7 +6809,8 @@
     let introPreviousElapsed = 0;
     const loadingScreen = $('loading-screen');
 
-    function finishLoadingIntro() {
+    function finishLoadingIntro(immediate = false) {
+      if (immediate) loadingScreen.style.display = 'none';
       if (introFinished) return;
       introFinished = true;
       introActive = false;
@@ -6146,14 +6829,15 @@
       menuVehicles[menuVehicleIndex].model.visible = true;
       $('main-menu-modal').style.display = 'flex';
       loadingScreen.style.opacity = '0';
-      setTimeout(() => { loadingScreen.style.display = 'none'; }, 700);
+      if (immediate) loadingScreen.style.display = 'none';
+      else setTimeout(() => { loadingScreen.style.display = 'none'; }, 700);
     }
 
     $('skip-loading').addEventListener('click', e => {
       e.stopPropagation();
-      finishLoadingIntro();
+      finishLoadingIntro(true);
     });
-    loadingScreen.addEventListener('click', finishLoadingIntro);
+    loadingScreen.addEventListener('click', () => finishLoadingIntro(true));
 
     function updateLoadingIntro(dt) {
       introElapsed += dt;
@@ -6305,7 +6989,15 @@
       { n: 'SCAR-H Battle Rifle', lv: 4, dmg: 38, rate: 0.14, mag: 20, rel: 1.9, spr: 0.01, zoom: 2.8, spd: 440, auto: 1, cls: 'Battle Rifle', type: 'rifle', caliber: 'battle_rifle' },
       { n: 'P90 PDW', lv: 2, dmg: 17, rate: 0.058, mag: 50, rel: 1.8, spr: 0.028, zoom: 1.6, spd: 340, auto: 1, cls: 'Submachine Gun', type: 'smg', caliber: 'smg' },
       { n: 'AA-12 Auto Shotgun', lv: 5, dmg: 14, pel: 7, rate: 0.28, mag: 12, rel: 2.3, spr: 0.07, zoom: 1.2, spd: 290, auto: 1, cls: 'Auto Shotgun', type: 'shotgun', caliber: 'shotgun' },
-      { n: 'Desert Eagle .50', lv: 3, dmg: 64, rate: 0.42, mag: 7, rel: 1.7, spr: 0.008, zoom: 1.5, spd: 350, cls: 'Heavy Pistol', type: 'pistol', caliber: 'pistol_50' }
+      { n: 'Desert Eagle .50', lv: 3, dmg: 64, rate: 0.42, mag: 7, rel: 1.7, spr: 0.008, zoom: 1.5, spd: 350, cls: 'Heavy Pistol', type: 'pistol', caliber: 'pistol_50' },
+      { n: 'Repair Wrench', lv: 1, heal: 26, dmg: 0, rate: 0.14, range: 8.5, mag: 100, rel: 2.2, zoom: 1.15, auto: 1, cls: 'Field Engineering', type: 'repair', repairTool: true, primaryActionLabel: 'REPAIR' },
+      { n: 'Riot Shield', lv: 1, dmg: 38, rate: 0.55, range: 3.6, mag: 1, rel: 0.8, zoom: 1.05, cls: 'Tactical Gear', type: 'shield', shieldGear: true, blockReduction: 0.82, braceReduction: 0.9, primaryActionLabel: 'BASH' },
+      { n: 'AK-74M Assault Rifle', lv: 1, dmg: 31, rate: 0.105, mag: 30, rel: 1.8, spr: 0.017, zoom: 2.2, spd: 430, auto: 1, cls: 'Assault Rifle', type: 'rifle', caliber: 'rifle' },
+      { n: 'MP5 Tactical SMG', lv: 2, dmg: 20, rate: 0.072, mag: 30, rel: 1.45, spr: 0.021, zoom: 1.7, spd: 345, auto: 1, cls: 'Submachine Gun', type: 'smg', caliber: 'smg' },
+      { n: 'AWM Bolt Sniper', lv: 3, dmg: 96, rate: 1.05, mag: 6, rel: 2.2, spr: 0.0015, zoom: 6.0, spd: 520, scope: 1, cls: 'Precision Sniper', type: 'sniper', caliber: 'sniper_50' },
+      { n: 'PKM Heavy Machine Gun', lv: 4, dmg: 30, rate: 0.095, mag: 120, rel: 4.5, spr: 0.032, zoom: 1.8, spd: 415, auto: 1, cls: 'Heavy Machine Gun', type: 'lmg', caliber: 'lmg' },
+      { n: 'M79 Thumper', lv: 4, dmg: 92, splash: 6.2, rate: 1.35, mag: 1, rel: 2.0, spr: 0.008, zoom: 1.6, spd: 68, explosive: true, cls: 'Grenade Launcher', type: 'launcher', caliber: 'at' },
+      { n: 'USP Tactical', lv: 2, dmg: 32, rate: 0.22, mag: 12, rel: 1.2, spr: 0.007, zoom: 1.5, spd: 330, cls: 'Suppressed Sidearm', type: 'pistol', caliber: 'pistol' }
     ];
     W.forEach(w => { w.a = w.mag; w.cd = 0; w.rl = 0; });
     function getWeaponBulletSpeed(w) {
@@ -6653,6 +7345,43 @@
           addBox(0.16, 0.12, 0.35, olive, 0, 0.14, 0.21);
         }
         addBarrel(0.08, 0.12, -0.85, steel, 0, 0.04);
+      } else if (index === 15) {
+        const repairAccent = new THREE.MeshStandardMaterial({ color: 0x0ea5e9, metalness: 0.35, roughness: 0.45, emissive: 0x0284c7, emissiveIntensity: 0.25 });
+        const sparkMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0 });
+        const handle = addBox(0.095, 0.1, 0.52, polymer, 0, -0.02, 0.04);
+        handle.rotation.x = 0.25;
+        addBox(0.11, 0.075, 0.14, repairAccent, 0, -0.05, 0.16).rotation.x = 0.25;
+        const shaft = addBox(0.08, 0.065, 0.42, steel, 0, 0.055, -0.26);
+        shaft.rotation.x = 0.22;
+        // Heavy open-end wrench jaws + arc-weld coil
+        addBox(0.24, 0.075, 0.14, steel, 0, 0.125, -0.49);
+        addBox(0.065, 0.075, 0.17, steel, -0.095, 0.145, -0.6);
+        addBox(0.065, 0.075, 0.17, steel, 0.095, 0.145, -0.6);
+        addBox(0.12, 0.095, 0.14, repairAccent, 0, 0.095, -0.39);
+        const arcTip = new THREE.Mesh(new THREE.OctahedronGeometry(0.085, 1), sparkMat);
+        arcTip.position.set(0, 0.145, -0.65);
+        model.add(arcTip);
+        model.flash = arcTip;
+      } else if (index === 16) {
+        const shieldPlateMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.55, roughness: 0.4 });
+        const visorMat = new THREE.MeshStandardMaterial({ color: 0x7dd3fc, metalness: 0.12, roughness: 0.1, transparent: true, opacity: 0.22 });
+        const stripeMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.32, roughness: 0.45 });
+        // Ballistic tactical shield centered on X=0 with clean, unobstructed armored visor
+        addBox(0.62, 0.38, 0.045, shieldPlateMat, 0, -0.15, -0.18);
+        addBox(0.62, 0.19, 0.045, shieldPlateMat, 0, 0.30, -0.18);
+        addBox(0.10, 0.24, 0.045, shieldPlateMat, -0.26, 0.09, -0.18);
+        addBox(0.10, 0.24, 0.045, shieldPlateMat, 0.26, 0.09, -0.18);
+        // Translucent polycarbonate armored viewport
+        addBox(0.42, 0.21, 0.02, visorMat, 0, 0.09, -0.18);
+        // Reinforced steel visor frame & upper/lower trim rails
+        addBox(0.64, 0.032, 0.06, steel, 0, 0.405, -0.18);
+        addBox(0.64, 0.032, 0.06, steel, 0, -0.355, -0.18);
+        addBox(0.44, 0.022, 0.055, steel, 0, 0.20, -0.18);
+        addBox(0.44, 0.022, 0.055, steel, 0, -0.02, -0.18);
+        addBox(0.46, 0.04, 0.052, stripeMat, 0, -0.10, -0.178);
+        // Tucked rear grip handle strictly below the viewport plate
+        addBox(0.045, 0.14, 0.055, polymer, 0.04, -0.22, -0.115);
+        model.scale.setScalar(0.68);
       } else {
         const heavy = index === 8, dmr = index === 6, lmg = index === 10;
         const barrelLength = heavy ? 0.95 : dmr ? 0.76 : lmg ? 0.72 : 0.55;
@@ -6685,25 +7414,75 @@
         }
       }
 
-      if (index === 0) addSight(0.16);
-      const muzzleZ = [-0.42, -1.02, -0.4, -1.16, -1.22, -0.48, -1.45, -0.92, -1.7, -0.92, -1.42, -1.28, -0.96, -1.18, -0.46][index] || -1.0;
-      const muzzleSleeve = new THREE.Mesh(
-        new THREE.CylinderGeometry(index === 8 ? 0.06 : 0.04, index === 8 ? 0.07 : 0.05, 0.11, 10),
-        steel
-      );
-      muzzleSleeve.rotation.x = Math.PI / 2;
-      muzzleSleeve.position.set(0, 0.025, muzzleZ);
-      model.add(muzzleSleeve);
-      for (const side of [-1, 1]) {
-        const fastener = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.025, 8), steel);
-        fastener.rotation.z = Math.PI / 2;
-        fastener.position.set(side * 0.082, 0.055, -0.12);
-        model.add(fastener);
+      if (index === 17) {
+        const akWood = new THREE.MeshStandardMaterial({ color: 0x7c3f1d, metalness: 0.12, roughness: 0.62 });
+        const akBakelite = new THREE.MeshStandardMaterial({ color: 0x9a3412, metalness: 0.14, roughness: 0.55 });
+        addBox(0.13, 0.11, 0.36, akWood, 0, 0.015, -0.35);
+        addBox(0.14, 0.13, 0.34, akWood, 0, 0.015, 0.39);
+        addBarrel(0.14, 0.02, -0.45, receiver, 0, 0.085);
+        addBox(0.035, 0.09, 0.04, steel, 0, 0.08, -0.92);
+        if (model.magMesh) {
+          model.magMesh.material = akBakelite;
+          model.magMesh.rotation.x = -0.22;
+        }
+      } else if (index === 18) {
+        addBox(0.15, 0.16, 0.38, polymer, 0, 0.02, -0.04);
+        addBarrel(0.46, 0.044, -0.62, receiver, 0, 0.02);
+        const mp5Mag = addBox(0.085, 0.26, 0.11, steel, 0, -0.15, -0.22);
+        mp5Mag.rotation.x = -0.18;
+        model.magMesh = mp5Mag;
+        addBox(0.03, 0.03, 0.32, steel, -0.065, 0.04, 0.32);
+        addBox(0.03, 0.03, 0.32, steel, 0.065, 0.04, 0.32);
+      } else if (index === 19) {
+        addBox(0.17, 0.18, 0.62, olive, 0, 0.005, -0.05);
+        addBox(0.16, 0.15, 0.38, olive, 0, 0.015, 0.36);
+        addBox(0.14, 0.06, 0.16, steel, 0, 0.02, -1.52);
+      } else if (index === 20) {
+        const pkmWood = new THREE.MeshStandardMaterial({ color: 0x6b3a1e, metalness: 0.12, roughness: 0.65 });
+        addBox(0.16, 0.14, 0.34, pkmWood, 0, 0.01, 0.39);
+        addBox(0.28, 0.2, 0.3, olive, -0.14, -0.15, -0.04);
+        addBox(0.04, 0.08, 0.22, steel, 0, 0.16, -0.35);
+      } else if (index === 21) {
+        const m79Wood = new THREE.MeshStandardMaterial({ color: 0x78350f, metalness: 0.1, roughness: 0.64 });
+        const brassMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.68, roughness: 0.28 });
+        model.children.slice().forEach(ch => { if (ch.geometry) model.remove(ch); });
+        addBox(0.14, 0.15, 0.28, steel, 0, 0.01, 0.04);
+        addBox(0.14, 0.13, 0.36, m79Wood, 0, -0.01, 0.34);
+        addBox(0.12, 0.1, 0.34, m79Wood, 0, -0.03, -0.3);
+        addBarrel(0.68, 0.068, -0.44, receiver, 0, 0.04);
+        addBarrel(0.06, 0.074, -0.78, steel, 0, 0.04);
+        addBox(0.07, 0.14, 0.03, brassMat, 0, 0.14, -0.16);
+        model.magMesh = null;
+      } else if (index === 22) {
+        addBox(0.14, 0.14, 0.34, receiver, 0, 0.02, -0.05);
+        addBox(0.13, 0.055, 0.28, steel, 0, 0.1, -0.05);
+        addBox(0.1, 0.19, 0.11, polymer, 0, -0.13, 0.08).rotation.x = -0.16;
+        addBarrel(0.36, 0.034, -0.44, receiver, 0, 0.035);
+        addBox(0.065, 0.06, 0.15, optic, 0, -0.055, -0.24);
+        addSight(0.165);
       }
-      const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 1), glow.clone());
-      flash.position.set(0, 0.012, muzzleZ - 0.06);
-      model.add(flash);
-      model.flash = flash;
+
+      if (index === 0) addSight(0.16);
+      const muzzleZ = [-0.42, -1.02, -0.4, -1.16, -1.22, -0.48, -1.45, -0.92, -1.7, -0.92, -1.42, -1.28, -0.96, -1.18, -0.46, -0.62, -0.35, -1.22, -0.88, -1.55, -1.42, -0.82, -0.64][index] || -1.0;
+      if (weapon.type !== 'shield' && weapon.type !== 'repair') {
+        const muzzleSleeve = new THREE.Mesh(
+          new THREE.CylinderGeometry(index === 8 ? 0.06 : 0.04, index === 8 ? 0.07 : 0.05, 0.11, 10),
+          steel
+        );
+        muzzleSleeve.rotation.x = Math.PI / 2;
+        muzzleSleeve.position.set(0, 0.025, muzzleZ);
+        model.add(muzzleSleeve);
+        for (const side of [-1, 1]) {
+          const fastener = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.025, 8), steel);
+          fastener.rotation.z = Math.PI / 2;
+          fastener.position.set(side * 0.082, 0.055, -0.12);
+          model.add(fastener);
+        }
+        const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 1), glow.clone());
+        flash.position.set(0, 0.012, muzzleZ - 0.06);
+        model.add(flash);
+        model.flash = flash;
+      }
       model.magHomeY = model.magMesh ? model.magMesh.position.y : 0;
       model.visible = false;
       fpGunRig.add(model);
@@ -6713,8 +7492,8 @@
     const weaponModels = W.map(makeWeaponModel);
     weaponModels[1].visible = true;
 
-    const PRI_WEAPONS = [1, 4, 10, 6, 8, 3, 11, 12, 13];
-    const SEC_WEAPONS = [0, 2, 5, 7, 9, 14];
+    const PRI_WEAPONS = [1, 17, 4, 18, 12, 6, 19, 11, 10, 20, 8, 3, 13];
+    const SEC_WEAPONS = [0, 22, 2, 14, 5, 21, 7, 9, 15, 16];
     const L = [1, 0];
 
     const P = {
@@ -6762,6 +7541,7 @@
       P.slideSpeed = (K[keyBindings.sprint] ? 17.5 : 14.5) * (P.sp > 0 ? 1.3 : 1);
       P.slideDir.copy(dir);
       playSnd(160, 0.35, 0.15, 'triangle');
+      recordTutorialStepEvent('slide');
     }
 
     // Animation Springs & Procedural Kinematics
@@ -7101,6 +7881,7 @@
       }
       if (button.dataset.hold === 'aim') {
         rm = P.veh ? 1 : (rm ? 0 : 1);
+        if (!P.veh && rm) recordTutorialStepEvent('aim');
         mobileAimPointer = event.pointerId;
         mobileAimX = event.clientX;
         mobileAimY = event.clientY;
@@ -7219,7 +8000,10 @@
       if (!isLocked) return;
       if (e.button === 2) {
         if (P.veh) rm = 1;
-        else rm = rm ? 0 : 1;
+        else {
+          rm = rm ? 0 : 1;
+          if (rm) recordTutorialStepEvent('aim');
+        }
       } else { lm = 1; lc = 1; }
     });
     window.addEventListener('mouseup', e => {
@@ -7261,6 +8045,8 @@
       $('slot-sec').classList.toggle('active', idx === 1);
       bannerMsg(W[P.w].n);
       playSnd(350, 0.08, 0.15, 'triangle');
+      recordTutorialStepEvent('swap', { weaponType: W[P.w].type });
+      if (W[P.w].type === 'repair') recordTutorialStepEvent('equip_repair');
     }
 
     function reloadActiveWeapon() {
@@ -7478,6 +8264,10 @@
       target.hp -= finalAmount;
       target.underFireTimer = 3.5;
       if (target.type === 'inf') target.flinchTimer = 0.22;
+      const isPlayerHit = attacker === 1 || attacker === P || (attacker && P.veh && attacker === P.veh);
+      if (isPlayerHit && target.team && target.tm !== P.tm) {
+        recordTutorialStepEvent('hit');
+      }
 
       const remoteTargetId = target.remote
         ? target.netId
@@ -7524,19 +8314,53 @@
       }
     }
 
+    function applyRiotShieldReduction({ damage = 0, isShieldEquipped = false, isBraced = false, attackerPos = null, targetPos = null, targetYaw = 0, bypassShield = false } = {}) {
+      if (!isShieldEquipped || bypassShield || damage <= 0 || !attackerPos || !targetPos) {
+        return { damage, blocked: false, multiplier: 1 };
+      }
+      const dx = attackerPos.x - targetPos.x;
+      const dz = attackerPos.z - targetPos.z;
+      const len = Math.hypot(dx, dz);
+      if (len <= 0.001) return { damage, blocked: false, multiplier: 1 };
+      const fwdX = -Math.sin(targetYaw);
+      const fwdZ = -Math.cos(targetYaw);
+      const dot = (dx / len) * fwdX + (dz / len) * fwdZ;
+      if (dot < 0.35) return { damage, blocked: false, multiplier: 1 };
+      const mult = isBraced ? 0.1 : 0.18;
+      return { damage: Math.max(1, Math.round(damage * mult)), blocked: true, multiplier: mult };
+    }
+
     function hurtPlayer(amount, by, sourcePosition = null, options = {}) {
       if (P.godmode) return;
       P.by = by;
-      showDamageDirection(sourcePosition || by);
+      const srcPos = sourcePosition || (by && by.p ? by.p : null);
+      showDamageDirection(srcPos || by);
       if (P.veh) {
         applyDamage(P.veh, amount, by, sourcePosition, options);
       } else {
-        const absorb = Math.min(P.sh, amount);
+        const hasShield = P.w >= 0 && W[P.w] && W[P.w].type === 'shield';
+        const shieldRes = applyRiotShieldReduction({
+          damage: amount,
+          isShieldEquipped: hasShield,
+          isBraced: Boolean(rm),
+          attackerPos: srcPos,
+          targetPos: P.p,
+          targetYaw: P.yaw,
+          bypassShield: Boolean(options.bypassShield)
+        });
+        const finalDmg = shieldRes.damage;
+        const absorb = Math.min(P.sh, finalDmg);
         P.sh -= absorb;
-        P.hp -= (amount - absorb);
-        $('damage-flash').style.opacity = '0.7';
-        setTimeout(() => { $('damage-flash').style.opacity = '0'; }, 150);
-        playSnd(120, 0.15, 0.3, 'sawtooth');
+        P.hp -= (finalDmg - absorb);
+        if (shieldRes.blocked) {
+          gunAnim.recoilZ = 0.05;
+          playSnd(640, 0.07, 0.18, 'triangle', 920);
+        } else {
+          $('damage-flash').style.opacity = '0.7';
+          setTimeout(() => { $('damage-flash').style.opacity = '0'; }, 150);
+          playSnd(120, 0.15, 0.3, 'sawtooth');
+        }
+        if (tutorialMode) P.hp = Math.max(25, P.hp);
       }
     }
 
@@ -7954,6 +8778,66 @@
       return best;
     }
 
+    const REPAIR_VEHICLE_TYPES = new Set(['tank', 'heli', 'car', 'sam']);
+
+    function isFriendlyVehicleForRepair(vehicle, playerTeam) {
+      if (!vehicle || vehicle.dead || vehicle.hp <= 0 || !REPAIR_VEHICLE_TYPES.has(vehicle.type)) return false;
+      return vehicle.tm === playerTeam || vehicle.tm < 0;
+    }
+
+    function findRepairTargetVehicle(origin, dir, entities, playerTeam, maxRange = 8.5) {
+      if (!origin || !dir || !Array.isArray(entities)) return { target: null, enemyBlocked: null };
+      const dLen = Math.hypot(dir.x || 0, dir.y || 0, dir.z || 0) || 1;
+      const dx = (dir.x || 0) / dLen, dy = (dir.y || 0) / dLen, dz = (dir.z || 0) / dLen;
+      let bestFriendly = null, bestFriendlyScore = Infinity, nearestEnemy = null, nearestEnemyDist = Infinity;
+      for (const entity of entities) {
+        if (!entity || entity.dead || entity.hp <= 0 || !REPAIR_VEHICLE_TYPES.has(entity.type) || !entity.p) continue;
+        const hitRadius = entity.type === 'heli' ? 3.2 : entity.type === 'tank' ? 3.0 : 2.6;
+        const tx = entity.p.x - origin.x;
+        const ty = (entity.p.y + (entity.type === 'heli' ? 1.5 : 1.2)) - origin.y;
+        const tz = entity.p.z - origin.z;
+        const dist = Math.hypot(tx, ty, tz);
+        if (dist > maxRange + hitRadius) continue;
+        const inv = 1 / (dist || 1);
+        const dot = tx * inv * dx + ty * inv * dy + tz * inv * dz;
+        if (dot < 0.45 && dist > hitRadius + 1.2) continue;
+        if (isFriendlyVehicleForRepair(entity, playerTeam)) {
+          const score = dist - dot * 2.5;
+          if (score < bestFriendlyScore) {
+            bestFriendlyScore = score;
+            bestFriendly = entity;
+          }
+        } else if (dist < nearestEnemyDist) {
+          nearestEnemyDist = dist;
+          nearestEnemy = entity;
+        }
+      }
+      return { target: bestFriendly, enemyBlocked: bestFriendly ? null : nearestEnemy };
+    }
+
+    function applyVehicleRepair(vehicle, healAmount, { restoreEra = true } = {}) {
+      if (!vehicle || vehicle.dead || vehicle.hp <= 0 || !Number.isFinite(healAmount) || healAmount <= 0) {
+        return { repaired: false, healed: 0, eraRestored: 0, hp: vehicle?.hp ?? 0, mhp: vehicle?.mhp ?? 0, full: false };
+      }
+      const prevHp = vehicle.hp;
+      const mhp = vehicle.mhp || prevHp;
+      const healed = Math.min(Math.max(0, mhp - prevHp), healAmount);
+      vehicle.hp = Math.min(mhp, prevHp + healed);
+      let eraRestored = 0;
+      if (restoreEra && vehicle.armorType === 'era' && vehicle.hp >= mhp && Number.isFinite(vehicle.maxEra) && (vehicle.reactiveArmor || 0) < vehicle.maxEra) {
+        vehicle.reactiveArmor = (vehicle.reactiveArmor || 0) + 1;
+        eraRestored = 1;
+      }
+      return {
+        repaired: healed > 0 || eraRestored > 0,
+        healed,
+        eraRestored,
+        hp: vehicle.hp,
+        mhp,
+        full: vehicle.hp >= mhp && (!vehicle.maxEra || (vehicle.reactiveArmor || 0) >= vehicle.maxEra)
+      };
+    }
+
     function firePlayerWeapon() {
       if (P.w < 0 || !W[P.w]) return;
       const w = W[P.w];
@@ -7962,7 +8846,100 @@
         w.rl = 0;
       }
       if (w.rl > 0 || (!P.infAmmo && w.cd > 0)) return;
+      if (w.type === 'shield') w.a = w.mag;
       if (w.a <= 0) { reloadActiveWeapon(); return; }
+
+      const o = camera.position.clone();
+      const d = new V3(0, 0, -1).applyQuaternion(camera.quaternion);
+      const weaponModel = weaponModels[P.w];
+
+      if (w.type === 'repair') {
+        const repairLookup = findRepairTargetVehicle(o, d, E, P.tm, w.range || 8.5);
+        if (!repairLookup.target) {
+          w.cd = 0.25;
+          bannerMsg(repairLookup.enemyBlocked ? 'CANNOT REPAIR ENEMY VEHICLE' : 'AIM AT A FRIENDLY VEHICLE TO REPAIR');
+          return;
+        }
+        const targetVeh = repairLookup.target;
+        const hitPos = targetVeh.p.clone().add(new V3(0, targetVeh.type === 'heli' ? 1.4 : 1.1, 0));
+        if (networked && !networkHost) {
+          w.cd = P.infAmmo ? Math.min(0.08, w.rate) : w.rate;
+          if (!P.infAmmo) w.a--;
+          netSocket.emit('combat:action', {
+            kind: 'repair',
+            x: o.x, y: o.y, z: o.z,
+            dx: d.x, dy: d.y, dz: d.z,
+            heal: w.heal || 26,
+            targetId: targetVeh.nid
+          });
+          gunAnim.recoilZ = 0.04;
+          gunAnim.muzzleTimer = 0.07;
+          if (weaponModel.flash) weaponModel.flash.material.opacity = 0.95;
+          drawTracer(o.clone().addScaledVector(d, 0.7), hitPos, 0x38bdf8, 0.12);
+          spawnExplosion(hitPos, 0.32, 0x38bdf8, 0.14);
+          playSnd(680, 0.08, 0.16, 'sawtooth', 980);
+          return;
+        }
+        const repairRes = applyVehicleRepair(targetVeh, w.heal || 26, { restoreEra: true });
+        if (!repairRes.repaired) {
+          w.cd = 0.28;
+          bannerMsg('VEHICLE AT FULL INTEGRITY');
+          return;
+        }
+        w.cd = P.infAmmo ? Math.min(0.08, w.rate) : w.rate;
+        if (!P.infAmmo) w.a--;
+        if (repairRes.eraRestored) syncVehicleEraVisuals(targetVeh);
+        gunAnim.recoilZ = 0.04;
+        gunAnim.muzzleTimer = 0.07;
+        if (weaponModel.flash) weaponModel.flash.material.opacity = 0.95;
+        drawTracer(o.clone().addScaledVector(d, 0.7), hitPos, 0x38bdf8, 0.12);
+        spawnExplosion(hitPos, 0.34, 0x38bdf8, 0.14);
+        playSnd(680, 0.08, 0.16, 'sawtooth', 980);
+        hitMarkerPulse();
+        recordTutorialStepEvent('repair');
+        const spec = getVehicleVariantSpec(targetVeh.type, targetVeh.faction);
+        const pct = Math.round((repairRes.hp / Math.max(1, repairRes.mhp)) * 100);
+        bannerMsg(`REPAIRED ${spec ? spec.name : targetVeh.type.toUpperCase()} (${pct}%)${repairRes.eraRestored ? ' · +1 ERA' : ''}`);
+        return;
+      }
+
+      if (w.type === 'shield') {
+        w.cd = P.infAmmo ? Math.min(0.18, w.rate) : w.rate;
+        gunAnim.recoilZ = -0.22;
+        gunAnim.recoilRotX = 0.34;
+        playSnd(140, 0.12, 0.28, 'triangle', 60);
+        if (networked && !networkHost) {
+          netSocket.emit('combat:action', {
+            kind: 'bash',
+            x: o.x, y: o.y, z: o.z,
+            dx: d.x, dy: d.y, dz: d.z,
+            damage: w.dmg || 38
+          });
+          return;
+        }
+        const bashRange = w.range || 3.6;
+        let hitAny = false;
+        E.forEach(e => {
+          if (!e.team || e.dead || e.tm === P.tm) return;
+          const dist = e.p.distanceTo(P.p);
+          if (dist > bashRange) return;
+          const toEnt = e.p.clone().sub(P.p);
+          toEnt.y = 0;
+          if (toEnt.lengthSq() > 0.001) toEnt.normalize();
+          const fwd = new V3(d.x, 0, d.z).normalize();
+          if (toEnt.dot(fwd) < 0.35 && dist > 1.35) return;
+          applyDamage(e, w.dmg || 38, 1, P.p, { caliber: 'pistol' });
+          if (e.type === 'inf') {
+            e.p.addScaledVector(fwd, 2.2);
+            checkCollisionPush(e.p, 0.7);
+          }
+          spawnExplosion(e.p.clone().add(new V3(0, 1.1, 0)), 0.32, 0xfbbf24, 0.14);
+          hitAny = true;
+        });
+        if (hitAny) hitMarkerPulse();
+        return;
+      }
+
       w.cd = P.infAmmo ? Math.min(0.08, w.rate) : w.rate;
       if (!P.infAmmo) w.a--;
       playSnd(w.m ? 110 : w.dmg > 40 ? 190 : 340, 0.12, 0.2);
@@ -7972,21 +8949,37 @@
       gunAnim.recoilRotX = w.m ? 0.08 : w.pel ? 0.2 : w.dmg > 60 ? 0.24 : 0.12;
       gunAnim.recoilRotY = (Math.random() - 0.5) * 0.04;
       gunAnim.muzzleTimer = 0.05;
-      const weaponModel = weaponModels[P.w];
       if (weaponModel.flash) {
         weaponModel.flash.scale.setScalar(rm && !P.veh ? 0.45 : 1);
         weaponModel.flash.material.opacity = 0.9;
       }
       fpMuzzleLight.intensity = w.m ? 3.4 : w.dmg > 50 ? 2.8 : 1.9;
 
-      const o = camera.position.clone();
-      const d = new V3(0, 0, -1).applyQuaternion(camera.quaternion);
-
       if (w.m) {
         const lock = (activeMissileLock.kind === w.m && activeMissileLock.target && !activeMissileLock.target.dead)
           ? activeMissileLock.target
           : lockTarget(o, d, w.m === 'aa' ? 380 : 340, 0.42, P.tm, w.m);
         launchMissile(w.m, o.clone().addScaledVector(d, 1.8), d, lock);
+        return;
+      }
+
+      if (w.explosive) {
+        const launchDir = d.clone().normalize();
+        const launchOrigin = o.clone().addScaledVector(launchDir, 0.95);
+        const launchVel = launchDir.clone().multiplyScalar(w.spd || 68);
+        launchVel.y += 3.6;
+        playSnd(135, 0.18, 0.28, 'triangle', 75);
+        if (networked && !networkHost) {
+          netSocket.emit('combat:action', {
+            kind: 'grenade',
+            grenadeType: '40mm',
+            x: launchOrigin.x, y: launchOrigin.y, z: launchOrigin.z,
+            dx: launchVel.x, dy: launchVel.y, dz: launchVel.z
+          });
+        } else {
+          spawnGrenade('40mm', launchOrigin, launchVel, P.tm, 1, null, 3.2);
+        }
+        recordTutorialStepEvent('grenade');
         return;
       }
 
@@ -8185,10 +9178,10 @@
 
     function createGrenadeMesh(type) {
       const grp = new THREE.Group();
-      const bodyMat = type === 'smoke' ? mats.steelLight : mats.camoGreen;
+      const bodyMat = type === 'smoke' ? mats.steelLight : type === '40mm' ? mats.hazardStripe : mats.camoGreen;
       const body = new THREE.Mesh(GRENADE_FRAG_BODY_GEO, bodyMat);
       grp.add(body);
-      const band = new THREE.Mesh(GRENADE_CAP_GEO, type === 'smoke' ? mats.pureWhite : mats.hazardStripe);
+      const band = new THREE.Mesh(GRENADE_CAP_GEO, type === 'smoke' ? mats.pureWhite : type === '40mm' ? mats.steelDark : mats.hazardStripe);
       band.position.y = 0.14;
       grp.add(band);
       scene.add(grp);
@@ -8236,7 +9229,7 @@
     }
 
     function spawnGrenade(type, origin, vel, team = P.tm, attacker = 1, id = null, fuseOverride = null) {
-      const gType = type === 'smoke' ? 'smoke' : 'frag';
+      const gType = type === 'smoke' ? 'smoke' : type === '40mm' ? '40mm' : 'frag';
       const mesh = createGrenadeMesh(gType);
       mesh.position.copy(origin);
       const grenade = {
@@ -8244,7 +9237,8 @@
         type: gType,
         x: origin.x, y: origin.y, z: origin.z,
         vx: vel.x, vy: vel.y, vz: vel.z,
-        fuse: fuseOverride ?? (gType === 'smoke' ? 1.35 : 2.35),
+        fuse: fuseOverride ?? (gType === 'smoke' ? 1.35 : gType === '40mm' ? 3.2 : 2.35),
+        impactDetonate: gType === '40mm',
         restitution: gType === 'smoke' ? 0.35 : 0.42,
         team,
         attacker,
@@ -8280,6 +9274,7 @@
       if (!isBotThrow) {
         playSnd(type === 'smoke' ? 320 : 280, 0.12, 0.18, 'triangle');
         updateHUD();
+        recordTutorialStepEvent('grenade');
       }
       if (networked && !networkHost && !fromNet && !isBotThrow) {
         netSocket.emit('combat:action', {
@@ -8308,10 +9303,12 @@
         return;
       }
 
-      playSnd(75, 0.75, 0.45, 'sawtooth', 22);
-      spawnExplosion(pos, 7.5, 0xf97316, 0.68);
-      const radius = 13.5;
-      const maxDmg = 118;
+      const is40mm = g.type === '40mm';
+      playSnd(is40mm ? 95 : 75, is40mm ? 0.52 : 0.75, 0.45, 'sawtooth', 22);
+      spawnExplosion(pos, is40mm ? 4.6 : 7.5, 0xf97316, is40mm ? 0.5 : 0.68);
+      const radius = is40mm ? 6.2 : 13.5;
+      const maxDmg = is40mm ? 92 : 118;
+      const blastCaliber = is40mm ? 'at' : 'frag';
 
       if (P.hp > 0 && !P.veh && !(brState.active && brState.phase === 'plane')) {
         const pd = pos.distanceTo(P.p);
@@ -8338,7 +9335,7 @@
         if (e.team && e.tm !== g.team) {
           const dmg = Math.round(maxDmg * falloff);
           if (!e.remote && g.attacker === 1) hitMarkerPulse();
-          applyDamage(e, dmg, g.attacker, pos, { caliber: 'frag' });
+          applyDamage(e, dmg, g.attacker, pos, { caliber: blastCaliber });
         }
         if (isVeh && d > 0.1) {
           const away = e.p.clone().sub(pos).normalize();
@@ -8381,6 +9378,7 @@
             const dx = g.x - cp.x, dz = g.z - cp.z;
             const dSq = dx * dx + dz * dz;
             if (cp.inside || dSq < 0.0484) {
+              if (g.impactDetonate) { g.fuse = 0; break; }
               if (g.vy < 0 && g.y >= maxY - 0.55) {
                 g.y = maxY + 0.22;
                 g.vy = Math.abs(g.vy) * rest;
@@ -8408,15 +9406,30 @@
             }
           }
 
+          if (g.impactDetonate) {
+            for (let k = 0; k < E.length; k++) {
+              const e = E[k];
+              if (e.dead || (e.team && e.tm === g.team) || e.localPlayerProxy) continue;
+              const hitR = isVehicleEntity(e) ? 2.6 : 1.2;
+              const dy = g.y - (e.p.y + 1.0);
+              if ((g.x - e.p.x) ** 2 + (g.z - e.p.z) ** 2 < hitR * hitR && Math.abs(dy) < 2.2) {
+                g.fuse = 0;
+                break;
+              }
+            }
+          }
+
           const floorPos = { x: g.x, y: g.y + 0.35, z: g.z };
           const floorY = getBaseWalkableHeight(floorPos);
           if (g.y <= floorY + 0.16) {
             g.y = floorY + 0.16;
+            if (g.impactDetonate) { g.fuse = 0; break; }
             if (Math.abs(g.vy) > 1.2) g.vy = Math.abs(g.vy) * rest;
             else g.vy = 0;
             g.vx *= 0.76;
             g.vz *= 0.76;
           }
+          if (g.fuse <= 0) break;
         }
 
         g.m.position.set(g.x, g.y, g.z);
@@ -8578,6 +9591,7 @@
                     : ` · [LMB] AUTOCANNON · [${keyLabel(keyBindings.interact)}] TO EXIT`;
           bannerMsg('ENTERED ' + best.type.toUpperCase() + msg);
         }
+        recordTutorialStepEvent('vehicle_enter');
       }
     }
 
@@ -8713,6 +9727,7 @@
     function updatePlayerFoot(dt) {
       if (P.slideCd > 0) P.slideCd -= dt;
       if (P.grenadeCd > 0) P.grenadeCd -= dt;
+      const prevFootX = P.p.x, prevFootZ = P.p.z;
 
       const isSprinting = K[keyBindings.sprint];
       const fwd = new V3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
@@ -8754,6 +9769,10 @@
         }
       }
       checkCollisionPush(P.p, 0.55, 1.8);
+      if (tutorialMode) {
+        const stepDist = Math.hypot(P.p.x - prevFootX, P.p.z - prevFootZ);
+        if (stepDist > 0.001) recordTutorialStepEvent('move', { distance: stepDist });
+      }
 
       camera.position.set(P.p.x, P.p.y + P.slideEyeHeight, P.p.z);
       camera.rotation.set(P.pit, P.yaw, P.sliding ? -0.05 : 0, 'YXZ');
@@ -8815,7 +9834,9 @@
       gunAnim.ads = THREE.MathUtils.damp(gunAnim.ads || 0, isAimingDownSights ? 1 : 0, 16, dt);
       
       const isSidearm = w.type === 'pistol' || w.cls === 'Auto Pistol';
-      const isLauncher = w.type === 'rocket';
+      const isLauncher = w.type === 'rocket' || w.type === 'launcher';
+      const isShield = w.type === 'shield';
+      const isRepair = w.type === 'repair';
       // Low-profile tactical ADS: gun model rests cleanly in lower viewport
       // so the physical gun never blocks or gets in the way of the sights/reticle
       const adsX = isSidearm ? 0.05 : isLauncher ? 0.08 : 0.04;
@@ -8824,9 +9845,12 @@
       
       const adsBlend = gunAnim.ads;
       const motionDamp = 1 - adsBlend * 0.72;
-      const finalX = THREE.MathUtils.lerp(0.24, adsX, adsBlend) + (bobX + gunAnim.swayX) * motionDamp;
-      const finalY = THREE.MathUtils.lerp(-0.24, adsY, adsBlend) + (bobY + gunAnim.swayY) * motionDamp - (P.sliding ? 0.08 : 0);
-      const finalZ = THREE.MathUtils.lerp(-0.45, adsZ, adsBlend) + gunAnim.recoilZ * (1 - adsBlend * 0.35);
+      const baseX = isShield ? THREE.MathUtils.lerp(-0.24, 0.0, adsBlend) : isRepair ? THREE.MathUtils.lerp(0.24, 0.14, adsBlend) : THREE.MathUtils.lerp(0.24, adsX, adsBlend);
+      const baseY = isShield ? THREE.MathUtils.lerp(-0.26, -0.14, adsBlend) : isRepair ? THREE.MathUtils.lerp(-0.24, -0.22, adsBlend) : THREE.MathUtils.lerp(-0.24, adsY, adsBlend);
+      const baseZ = isShield ? THREE.MathUtils.lerp(-0.62, -0.52, adsBlend) : THREE.MathUtils.lerp(-0.45, adsZ, adsBlend);
+      const finalX = baseX + (bobX + gunAnim.swayX) * motionDamp;
+      const finalY = baseY + (bobY + gunAnim.swayY) * motionDamp - (P.sliding ? 0.08 : 0);
+      const finalZ = baseZ + gunAnim.recoilZ * (1 - adsBlend * 0.35);
       
       fpGunRig.position.set(finalX, finalY, finalZ);
       fpGunRig.rotation.set(
@@ -8862,6 +9886,7 @@
       }
 
       const spec = getVehicleVariantSpec(v.type, v.faction);
+      const prevVehX = v.p.x, prevVehZ = v.p.z;
       const fwd = new V3(Math.sin(v.yaw), 0, Math.cos(v.yaw));
       const accel = (K.KeyW ? 1 : 0) - (K.KeyS ? 1 : 0);
       const steer = (K.KeyA ? 1 : 0) - (K.KeyD ? 1 : 0);
@@ -8928,11 +9953,17 @@
             fireVehicleMG(v, spec ? spec.primaryDmg : 32, v.faction === 'ussr' ? 0.024 : 0.018, spec ? spec.primaryCaliber : '30mm');
             v.m.chinGun.recoil = 0.14;
             v.m.chinGun.flashTimer = 0.065;
+            recordTutorialStepEvent('vehicle_fire');
             if (v.ammo <= 0) v.reloading = v.reloadTime;
           } else {
             v.reloading = v.reloadTime;
           }
         }
+      }
+
+      if (tutorialMode) {
+        const vehDist = Math.hypot(v.p.x - prevVehX, v.p.z - prevVehZ);
+        if (vehDist > 0.001) recordTutorialStepEvent('vehicle_move', { distance: vehDist });
       }
 
       if (v.type === 'car') {
@@ -8942,6 +9973,7 @@
             v.ammo--;
             v.cd = spec ? spec.fireRate : 0.08;
             fireVehicleMG(v, spec ? spec.primaryDmg : 35, v.faction === 'ussr' ? 0.028 : 0.022, spec ? spec.primaryCaliber : '25mm');
+            recordTutorialStepEvent('vehicle_fire');
             if (v.ammo <= 0) v.reloading = v.reloadTime;
           } else {
             v.reloading = v.reloadTime;
@@ -8965,6 +9997,7 @@
             const samType = spec?.missileType || 'sam';
             launchMissile(samType, o.addScaledVector(d, 3.2), d, tgtLock);
             bannerMsg(tgtLock ? 'SAM MISSILE LAUNCHED · RADAR TRACKING ACTIVE' : 'SAM MISSILE LAUNCHED');
+            recordTutorialStepEvent('vehicle_fire');
             if (v.mAmmo <= 0) v.mReloading = v.mReloadTime;
           } else {
             v.mReloading = v.mReloadTime;
@@ -8977,6 +10010,7 @@
             v.ammo = Math.max(0, v.ammo - 2);
             v.cd = spec ? spec.fireRate : 0.055;
             fireSAMCIWS(v);
+            recordTutorialStepEvent('vehicle_fire');
             if (v.ammo <= 0) v.reloading = v.reloadTime;
           } else {
             v.reloading = v.reloadTime;
@@ -8999,6 +10033,7 @@
             const d = getVehicleAimDir(v, o);
             const shellType = spec?.missileType || (v.faction === 'ussr' ? 'shell_125' : 'shell_120');
             launchMissile(shellType, o.addScaledVector(d, 3.2), d, null);
+            recordTutorialStepEvent('vehicle_fire');
           }
         }
 
@@ -9008,6 +10043,7 @@
             v.mgAmmo--;
             v.mgCd = 0.08;
             fireTankCoaxMG(v);
+            recordTutorialStepEvent('vehicle_fire');
             if (v.mgAmmo <= 0) v.mgReloading = v.mgReloadTime;
           } else {
             v.mgReloading = v.mgReloadTime;
@@ -9511,7 +10547,7 @@
           }
         });
 
-        if ((brState.active && brState.peaceTimer > 0) || e.unarmed) {
+        if ((brState.active && brState.peaceTimer > 0) || e.unarmed || e.tutorialTarget) {
           bestTarget = null;
         }
         e.tg = bestTarget;
@@ -9522,7 +10558,11 @@
           const committedVehicle = e.aiState === 'board_veh' && veh
             && !veh.dead && !veh.driver && P.veh !== veh
             && ((currentMode === 'ffa' || currentMode === 'br') || veh.tm === e.tm);
-          if (!committedVehicle) {
+          if (e.tutorialTarget) {
+            e.aiState = 'range_target';
+            e.targetVeh = null;
+            e.boardTimer = 0;
+          } else if (!committedVehicle) {
             if (e.targetVeh?.boardingBot === e) e.targetVeh.boardingBot = null;
             e.targetVeh = null;
             e.aiState = 'patrol';
@@ -9616,8 +10656,14 @@
         e.boardTimer = 0;
       }
 
+      // Tutorial training range targets stay pacing smoothly downrange
+      if (isInf && e.tutorialTarget) {
+        const sway = Math.sin(performance.now() * 0.0012 + (e.patrolSlot || 0) * 1.9) * 3.5;
+        targetX = e.sp.x + sway;
+        targetZ = e.sp.z - sway;
+      }
       // Keep vehicle boarding ahead of mode-specific movement objectives.
-      if (isInf && e.aiState === 'board_veh' && e.targetVeh && !e.targetVeh.dead && !e.targetVeh.driver) {
+      else if (isInf && e.aiState === 'board_veh' && e.targetVeh && !e.targetVeh.dead && !e.targetVeh.driver) {
         targetX = e.targetVeh.p.x;
         targetZ = e.targetVeh.p.z;
       }
@@ -10086,6 +11132,8 @@
 
         const sx = (projVec.x + 1) * 0.5 * innerWidth;
         const sy = (1 - projVec.y) * 0.5 * innerHeight;
+        if (sx < 185 && sy < 175) return;
+        if (tutorialMode && sx > innerWidth - 360 && sy < 290) return;
 
         // Size scaling based on distance
         const scale = Math.max(0.65, Math.min(1.2, 70 / dist));
@@ -11174,6 +12222,7 @@
     let brState = {
       active: false,
       phase: 'ground',
+      peaceTimer: 30,
       planePos: new V3(-220, 95, -220),
       planeDir: new V3(1, 0, 1).normalize(),
       planeSpeed: 28,
@@ -11274,7 +12323,8 @@
           if (!OB.some(o => Math.abs(x - o.x) < o.hw + 2.5 && Math.abs(z - o.z) < o.hd + 2.5)) break;
         }
         const groundY = getTerrainHeight(x, z);
-        const weaponIndex = Math.floor(Math.random() * W.length);
+        const brPool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 22];
+        const weaponIndex = brPool[Math.floor(Math.random() * brPool.length)] % W.length;
         const grp = new THREE.Group();
         const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.25, 1.6), crateMat);
         box.position.y = 0.625;
@@ -11310,21 +12360,247 @@
       }
     }
 
-    function startMatch() {
+    const TUTORIAL_XP_REWARD = 150;
+    const TUTORIAL_STEPS = [
+      {
+        id: 'move_slide',
+        title: 'MOBILITY & SLIDE',
+        summary: 'Move around the training yard and trigger a tactical slide to dodge fire.',
+        tasks: [
+          { key: 'moved', label: 'Move 4m using WASD or Left Stick' },
+          { key: 'slid', label: 'Press [C] / SLIDE to tactical slide' }
+        ]
+      },
+      {
+        id: 'aim_fire',
+        title: 'AIM & ENGAGE',
+        summary: 'Toggle aim down sights for pinpoint accuracy and eliminate a range target.',
+        tasks: [
+          { key: 'aimed', label: 'Toggle Aim with [RMB] or AIM' },
+          { key: 'targetHit', label: 'Fire [LMB] and hit a training target downrange' }
+        ]
+      },
+      {
+        id: 'arsenal_grenade',
+        title: 'LOADOUT & ORDNANCE',
+        summary: 'Swap between primary and secondary slots and throw a tactical grenade.',
+        tasks: [
+          { key: 'swapped', label: 'Swap slots with [1]/[2]/[Q] or SWAP' },
+          { key: 'grenade', label: 'Throw a Frag [G] or Smoke [V] grenade' }
+        ]
+      },
+      {
+        id: 'repair_wrench',
+        title: 'FIELD ENGINEERING',
+        summary: 'Equip your Repair Wrench and weld the damaged friendly M1A2 Abrams.',
+        tasks: [
+          { key: 'wrenchEquipped', label: 'Select the Repair Wrench in Slot 2' },
+          { key: 'repaired', label: 'Hold [LMB] / REPAIR on the damaged tank' }
+        ]
+      },
+      {
+        id: 'vehicle_command',
+        title: 'ARMORED COMMAND',
+        summary: 'Board a friendly armored vehicle, test its cannon or drive, then dismount.',
+        tasks: [
+          { key: 'boarded', label: 'Approach a vehicle and press [E] / USE' },
+          { key: 'operated', label: 'Fire cannon [LMB] or drive 4m inside' }
+        ]
+      },
+      {
+        id: 'tactical_readiness',
+        title: 'FIELD BRIEFING',
+        summary: 'Base C-RAM turrets intercept missiles in TDM/CTF. BR grants 30s looting peace before zone shrink.',
+        tasks: [
+          { key: 'acknowledged', label: 'Click COMPLETE TRAINING to claim +150 XP' }
+        ]
+      }
+    ];
+    let tutorialMode = false;
+    let tutorialState = null;
+    let tutorialSavedLoadout = null;
+
+    function createTutorialState() {
+      return {
+        active: true,
+        stepIndex: 0,
+        completed: false,
+        rewardClaimed: false,
+        distanceMoved: 0,
+        vehicleDistance: 0,
+        flags: {
+          moved: false, slid: false, aimed: false, targetHit: false,
+          swapped: false, grenade: false, wrenchEquipped: false, repaired: false,
+          boarded: false, operated: false, acknowledged: false
+        }
+      };
+    }
+
+    function getCurrentTutorialStep(state) {
+      if (!state) return TUTORIAL_STEPS[0];
+      const idx = Math.max(0, Math.min(TUTORIAL_STEPS.length - 1, state.stepIndex || 0));
+      return TUTORIAL_STEPS[idx];
+    }
+
+    function isTutorialStepComplete(state, stepIndex = state?.stepIndex) {
+      if (!state) return false;
+      const step = TUTORIAL_STEPS[stepIndex];
+      return Boolean(step && step.tasks.every(t => Boolean(state.flags[t.key])));
+    }
+
+    function advanceTutorialStep(state) {
+      if (!state || !state.active || state.completed) {
+        return { state, advanced: false, finished: Boolean(state?.completed), rewardXp: 0 };
+      }
+      if (state.stepIndex < TUTORIAL_STEPS.length - 1) {
+        state.stepIndex += 1;
+        return { state, advanced: true, finished: false, rewardXp: 0 };
+      }
+      state.flags.acknowledged = true;
+      state.completed = true;
+      const rewardXp = state.rewardClaimed ? 0 : TUTORIAL_XP_REWARD;
+      state.rewardClaimed = true;
+      return { state, advanced: true, finished: true, rewardXp };
+    }
+
+    function recordTutorialEvent(state, eventType, payload = {}) {
+      if (!state || !state.active || state.completed) {
+        return { state, stepAdvanced: false, finished: Boolean(state?.completed), rewardXp: 0 };
+      }
+      const currentStep = getCurrentTutorialStep(state);
+      const f = state.flags;
+      if (eventType === 'move') {
+        state.distanceMoved += Math.max(0, Number(payload.distance) || 0);
+        if (state.distanceMoved >= 4) f.moved = true;
+      } else if (eventType === 'slide') f.slid = true;
+      else if (eventType === 'aim') f.aimed = true;
+      else if (eventType === 'hit') f.targetHit = true;
+      else if (eventType === 'swap') {
+        f.swapped = true;
+        if (payload.weaponType === 'repair') f.wrenchEquipped = true;
+      } else if (eventType === 'grenade') f.grenade = true;
+      else if (eventType === 'equip_repair') f.wrenchEquipped = true;
+      else if (eventType === 'repair') { f.wrenchEquipped = true; f.repaired = true; }
+      else if (eventType === 'vehicle_enter') f.boarded = true;
+      else if (eventType === 'vehicle_move') {
+        state.vehicleDistance += Math.max(0, Number(payload.distance) || 0);
+        if (state.vehicleDistance >= 4) f.operated = true;
+      } else if (eventType === 'vehicle_fire') { f.boarded = true; f.operated = true; }
+      else if (eventType === 'complete') f.acknowledged = true;
+
+      let stepAdvanced = false, finished = false, rewardXp = 0;
+      if ((currentStep.id !== 'tactical_readiness' && isTutorialStepComplete(state, state.stepIndex))
+          || (currentStep.id === 'tactical_readiness' && f.acknowledged)) {
+        const res = advanceTutorialStep(state);
+        stepAdvanced = res.advanced;
+        finished = res.finished;
+        rewardXp = res.rewardXp;
+      }
+      return { state, stepAdvanced, finished, rewardXp };
+    }
+
+    function renderTutorialTracker() {
+      const tracker = $('tutorial-tracker');
+      if (!tracker) return;
+      if (!tutorialMode || !tutorialState) {
+        tracker.style.display = 'none';
+        return;
+      }
+      tracker.style.display = 'block';
+      const stepEl = $('tut-step-label');
+      const titleEl = $('tut-title');
+      const sumEl = $('tut-summary');
+      const tasksEl = $('tut-tasks');
+      const actionsEl = $('tut-actions');
+      if (tutorialState.completed) {
+        stepEl.textContent = 'TRAINING COMPLETE';
+        titleEl.textContent = 'CERTIFIED OPERATOR';
+        sumEl.textContent = 'All 6 battlefield drills passed (+150 XP awarded). Ready for live combat deployment.';
+        tasksEl.innerHTML = '<div class="tut-task done"><span>✓</span><span>Training qualification unlocked</span></div>';
+        actionsEl.innerHTML = '<button type="button" class="btn-action" id="btn-tut-deploy">DEPLOY TO BATTLE</button><button type="button" class="btn-secondary" id="btn-tut-menu">MAIN MENU</button>';
+        return;
+      }
+      const step = getCurrentTutorialStep(tutorialState);
+      stepEl.textContent = `STEP ${tutorialState.stepIndex + 1} / ${TUTORIAL_STEPS.length}`;
+      titleEl.textContent = step.title;
+      sumEl.textContent = step.summary;
+      tasksEl.innerHTML = step.tasks.map(t => {
+        const done = Boolean(tutorialState.flags[t.key]);
+        return `<div class="tut-task${done ? ' done' : ''}"><span>${done ? '✓' : '○'}</span><span>${t.label}</span></div>`;
+      }).join('');
+      const isFinal = step.id === 'tactical_readiness';
+      actionsEl.innerHTML = isFinal
+        ? '<button type="button" class="btn-action" id="btn-tut-next">COMPLETE TRAINING (+150 XP)</button>'
+        : '<button type="button" class="btn-action" id="btn-tut-next">SKIP STEP</button>';
+    }
+
+    function recordTutorialStepEvent(eventType, payload = {}) {
+      if (!tutorialMode || !tutorialState || !tutorialState.active) return;
+      const res = recordTutorialEvent(tutorialState, eventType, payload);
+      if (res.stepAdvanced && !res.finished) {
+        const nextStep = getCurrentTutorialStep(tutorialState);
+        bannerMsg(`DRILL PASSED · STEP ${tutorialState.stepIndex + 1}: ${nextStep.title}`);
+        playSnd(520, 0.14, 0.2, 'triangle', 760);
+      }
+      renderTutorialTracker();
+    }
+
+    function startTutorial() {
+      if (networked && typeof leaveOnlineRoom === 'function') leaveOnlineRoom();
+      finishLoadingIntro(true);
+      tutorialSavedLoadout = [L[0], L[1]];
+      currentMode = 'tdm';
+      currentMap = 'ironvale';
+      tutorialState = createTutorialState();
+      startMatch({ tutorial: true });
+      if (supportsTouchControls) enterGameplayControls();
+    }
+
+    function exitTutorial(dest = 'lobby') {
+      tutorialMode = false;
+      tutorialState = null;
+      if (tutorialSavedLoadout) {
+        L[0] = tutorialSavedLoadout[0];
+        L[1] = tutorialSavedLoadout[1];
+        tutorialSavedLoadout = null;
+      }
+      if ($('tutorial-tracker')) $('tutorial-tracker').style.display = 'none';
+      if ($('players-online')) $('players-online').style.display = '';
+      quitToLobby();
+      if (dest === 'menu') {
+        $('lobby-modal').style.display = 'none';
+        $('main-menu-modal').style.display = 'flex';
+      }
+    }
+
+    function startMatch(matchOpts = {}) {
+      const isTutorial = Boolean(matchOpts && matchOpts.tutorial);
+      tutorialMode = isTutorial;
+      if (!isTutorial) {
+        tutorialState = null;
+        if ($('tutorial-tracker')) $('tutorial-tracker').style.display = 'none';
+        if ($('players-online')) $('players-online').style.display = '';
+      } else {
+        if ($('players-online')) $('players-online').style.display = 'none';
+      }
       if (builtMapId !== currentMap) buildMap(currentMap);
       matchStartedAt = Date.now();
-      operatorStats.matches++;
-      saveOperatorStats();
+      if (!isTutorial) {
+        operatorStats.matches++;
+        saveOperatorStats();
+      }
       clearBRWorld();
       GRENADES.forEach(g => scene.remove(g.m));
       GRENADES.length = 0;
       SMOKES.forEach(s => { if (s.m) scene.remove(s.m); });
       SMOKES.length = 0;
-      matchBotsEnabled = !networked
+      matchBotsEnabled = isTutorial
         ? true
-        : networkHost
-          ? networkRoomKind === 'private' ? privateRoomBotsEnabled : networkRoomKind === 'public-bots'
-          : networkMatchConfig?.botsEnabled === true;
+        : !networked
+          ? true
+          : networkHost
+            ? networkRoomKind === 'private' ? privateRoomBotsEnabled : networkRoomKind === 'public-bots'
+            : networkMatchConfig?.botsEnabled === true;
       E.forEach(e => {
         scene.remove(e.m);
       });
@@ -11352,13 +12628,17 @@
       if (FLAGS) FLAGS.forEach(f => scene.remove(f.m));
       FLAGS = null;
 
-      const isBR = currentMode === 'br';
+      const isBR = !isTutorial && currentMode === 'br';
       P.sl = 0;
       if (isBR) {
         L[0] = -1;
         L[1] = -1;
         P.w = -1;
         weaponModels.forEach(m => { m.visible = false; });
+      } else if (isTutorial) {
+        L[0] = 17;
+        L[1] = 15;
+        P.w = 17;
       } else {
         if (L[0] < 0) L[0] = 1;
         if (L[1] < 0) L[1] = 0;
@@ -11419,7 +12699,7 @@
 
       if (isBR) {
         brState.active = true;
-        brState.peaceTimer = 150;
+        brState.peaceTimer = 30;
         brState.stormTick = 0;
         brState.phase = 'plane';
         brState.planePos.set(-220, 95, -220);
@@ -11479,6 +12759,43 @@
           entity.heliSlot = index;
         });
       };
+
+      if (isTutorial) {
+        const px = -120, pz = -215;
+        P.p.set(px, getTerrainHeight(px, pz), pz);
+        checkCollisionPush(P.p, 0.55, 1.8);
+        P.yaw = -Math.PI / 2;
+
+        const tankX = -109, tankZ = -221;
+        const tankY = getTerrainHeight(tankX, tankZ);
+        const tutTank = addEntity('tank', mkTank(TC[0], 'usa'), tankX, tankZ, 2400, 0, tankY, 0, 'usa');
+        tutTank.hp = 1200;
+        tutTank.reactiveArmor = 2;
+        tutTank.yaw = Math.PI * 0.42;
+        tutTank.teamColorHex = TC[0];
+        syncVehicleEraVisuals(tutTank);
+
+        [
+          [-92, -213, 'TARGET ALPHA'],
+          [-86, -217, 'TARGET BRAVO']
+        ].forEach(([bx, bz, label], idx) => {
+          const by = getTerrainHeight(bx, bz);
+          const bot = addEntity('inf', mkInf(TC[1], 'ussr'), bx, bz, 65, 1, by, 1, 'ussr');
+          bot.hp = 65;
+          bot.mhp = 65;
+          bot.yaw = -Math.PI / 2;
+          bot.unarmed = true;
+          bot.tutorialTarget = true;
+          bot.patrolSlot = idx;
+          bot.nm = label;
+          bot.aiState = 'range_target';
+        });
+
+        renderTutorialTracker();
+        bannerMsg('TRAINING RANGE — FOLLOW TUTORIAL DRILLS');
+        updateHUD();
+        return;
+      }
 
       if (isFFA && !isBR) {
         const vehicleSpawns = [
@@ -12147,10 +13464,13 @@
         $('active-player-count').textContent = data.activePlayers;
       }
     });
+    netSocket.on('friends:updated', payload => applyFriendsPayload(payload));
+    netSocket.on('friends:invite', invite => showFriendInviteBanner(invite));
     netSocket.on('connect', () => {
       setConnectionState('Connected');
       hasConnectedOnce = true;
       $('active-player-count').textContent = '—';
+      identifyAccountSocket();
       if (reconnectingRoom) {
         const room = reconnectingRoom;
         reconnectingRoom = null;
@@ -12335,6 +13655,38 @@
         return;
       }
       const direction = new V3(action.dx, action.dy, action.dz).normalize();
+      if (action.kind === 'repair') {
+        const targetVeh = action.targetId
+          ? E.find(e => e.nid === action.targetId && isFriendlyVehicleForRepair(e, attacker.tm))
+          : findRepairTargetVehicle(origin, direction, E, attacker.tm, 9.5).target;
+        if (targetVeh) {
+          const res = applyVehicleRepair(targetVeh, Math.max(1, Math.min(60, Number(action.heal) || 26)), { restoreEra: true });
+          if (res.eraRestored) syncVehicleEraVisuals(targetVeh);
+          const hitPos = targetVeh.p.clone().add(new V3(0, 1.2, 0));
+          drawTracer(origin, hitPos, 0x38bdf8, 0.12);
+          spawnExplosion(hitPos, 0.3, 0x38bdf8, 0.14);
+        }
+        return;
+      }
+      if (action.kind === 'bash') {
+        const bashDmg = Math.max(1, Math.min(65, Number(action.damage) || 38));
+        E.forEach(e => {
+          if (!e.team || e.dead || e.tm === attacker.tm) return;
+          const dist = e.p.distanceTo(origin);
+          if (dist > 4.2) return;
+          const toEnt = e.p.clone().sub(origin);
+          toEnt.y = 0;
+          if (toEnt.lengthSq() > 0.001) toEnt.normalize();
+          const fwd = new V3(direction.x, 0, direction.z).normalize();
+          if (toEnt.dot(fwd) < 0.3 && dist > 1.5) return;
+          applyDamage(e, bashDmg, attacker, origin, { caliber: 'pistol' });
+          if (e.type === 'inf') {
+            e.p.addScaledVector(fwd, 2.2);
+            checkCollisionPush(e.p, 0.7);
+          }
+        });
+        return;
+      }
       if (action.kind === 'shot') {
         const shotSpeed = Math.max(120, Math.min(700, Number(action.speed) || 380));
         raycastBullet(origin, direction, action.damage, attacker, Boolean(action.aimed), shotSpeed, action.caliber || 'rifle');
@@ -12414,6 +13766,11 @@
 
     function onKill(victim, attacker) {
       if (!victim.team && victim.type !== 'pl') return;
+      if (tutorialMode) {
+        if (victim.tutorialTarget) victim.rs = 2.5;
+        pushKillFeed(`TARGET HIT ▸ ${victim.nm || 'RANGE TARGET'}`);
+        return;
+      }
       const isPlayer = attacker === 1 || attacker === 'P';
       if (isPlayer) operatorStats.kills++;
       if (victim.type === 'pl') operatorStats.deaths++;
@@ -12496,6 +13853,10 @@
     }
 
     function quitToLobby() {
+      tutorialMode = false;
+      tutorialState = null;
+      if ($('tutorial-tracker')) $('tutorial-tracker').style.display = 'none';
+      if ($('players-online')) $('players-online').style.display = '';
       clearBRWorld();
       P.veh = null;
       P.isPassenger = false;
@@ -12578,17 +13939,25 @@
       const renderCard = (wIdx, slotIdx) => {
         const w = W[wIdx];
         const isLockedGun = w.lv > lvl();
+        const isRepair = w.type === 'repair';
+        const isShield = w.type === 'shield';
+        const isGrenadeLauncher = w.type === 'launcher';
+        const stat1Label = isRepair ? 'REPAIR RATE' : isShield ? 'BASH / BLOCK' : isGrenadeLauncher ? 'BLAST DAMAGE' : 'DAMAGE';
+        const stat1Val = isRepair ? (w.heal || 26) * 4 : isShield ? 115 : (w.m ? 240 : w.dmg * (w.pel || 1));
+        const stat2Label = isRepair ? 'ARC SPEED' : isShield ? 'ARMOR RATING' : 'RATE';
+        const stat2Val = isRepair ? 1 / w.rate : isShield ? 13 : 1 / w.rate;
+        const capText = isRepair ? `CHARGE: ${w.mag}%` : isShield ? 'BLOCK: 82% / 90%' : isGrenadeLauncher ? `40MM · ${w.splash || 6}M SPLASH` : `MAGAZINE: ${w.mag}`;
         return `
           <div class="weapon-card ${L[slotIdx] === wIdx ? 'selected' : ''} ${isLockedGun ? 'locked' : ''}" data-w="${wIdx}" data-slot="${slotIdx}">
             <b style="color:#fff;font-size:12px;">${w.n}</b>
             <div style="color:${isLockedGun ? '#ef4444' : '#94a3b8'};font-size:10px;margin-bottom:4px;">
               ${isLockedGun ? 'UNLOCKS LV ' + w.lv : w.cls}
             </div>
-            <div style="font-size:9px;color:#cbd5e1">DAMAGE</div>
-            ${statBar(w.m ? 240 : w.dmg * (w.pel || 1), 140)}
-            <div style="font-size:9px;color:#cbd5e1">RATE</div>
-            ${statBar(1 / w.rate, 15)}
-            <div style="font-size:9px;color:#cbd5e1">MAGAZINE: ${w.mag}</div>
+            <div style="font-size:9px;color:#cbd5e1">${stat1Label}</div>
+            ${statBar(stat1Val, 140)}
+            <div style="font-size:9px;color:#cbd5e1">${stat2Label}</div>
+            ${statBar(stat2Val, 15)}
+            <div style="font-size:9px;color:#cbd5e1">${capText}</div>
           </div>
         `;
       };
@@ -12610,7 +13979,13 @@
       if (!loadoutOpenedFromLobby) {
         inLobby = 0;
         document.body.dataset.state = 'playing';
-        if (!P.veh) P.w = L[P.sl];
+        if (!P.veh) {
+          P.w = L[P.sl];
+          if (W[P.w]) {
+            recordTutorialStepEvent('swap', { weaponType: W[P.w].type });
+            if (W[P.w].type === 'repair') recordTutorialStepEvent('equip_repair');
+          }
+        }
         enterGameplayControls();
       }
     }
@@ -12701,10 +14076,24 @@
     function updateMobileVehicleControls(vehicle) {
       const vehicleType = vehicle ? vehicle.type : 'inf';
       const isUssr = vehicle ? (vehicle.faction ? vehicle.faction === 'ussr' : vehicle.tm === 1) : false;
-      const controlKey = `${vehicleType}:${isUssr ? 'ussr' : 'usa'}`;
+      const activeFootWeapon = !vehicle && P.w >= 0 ? W[P.w] : null;
+      const footPrimaryMode = activeFootWeapon?.type === 'repair'
+        ? 'repair'
+        : activeFootWeapon?.type === 'shield'
+          ? 'bash'
+          : 'fire';
+      const controlKey = `${vehicleType}:${isUssr ? 'ussr' : 'usa'}:${footPrimaryMode}`;
       const controlSets = {
         inf: {
-          fire: ['FIRE', 'Fire weapon'], aim: ['AIM', 'Aim or secondary fire'], slide: ['SLIDE', 'Tactical slide'], use: ['USE', 'Enter or exit vehicle'],
+          fire: footPrimaryMode === 'repair'
+            ? ['REPAIR', 'Repair friendly vehicle']
+            : footPrimaryMode === 'bash'
+              ? ['BASH', 'Shield bash strike']
+              : ['FIRE', 'Fire weapon'],
+          aim: footPrimaryMode === 'shield'
+            ? ['BRACE', 'Brace riot shield']
+            : ['AIM', 'Aim or secondary fire'],
+          slide: ['SLIDE', 'Tactical slide'], use: ['USE', 'Enter or exit vehicle'],
           jump: ['JUMP', 'Jump'], descend: ['SPRINT', 'Sprint'], reload: ['RELOAD', 'Reload weapon'],
           missile: null, grenade: ['FRAG', 'Throw frag grenade'], swap: ['SWAP', 'Switch weapon slot'], loadout: ['ARMORY', 'Open loadout']
         },
@@ -12784,7 +14173,11 @@
       });
 
       const s = teamId => scores[teamId] || 0;
-      if (currentMode === 'br') {
+      if (tutorialMode) {
+        $('score-blue').textContent = `STEP ${(tutorialState?.stepIndex || 0) + 1}/${TUTORIAL_STEPS.length}`;
+        $('score-red').textContent = `${tutorialState?.completed ? 'CERTIFIED' : 'RANGE'}`;
+        if ($('match-target')) $('match-target').textContent = 'TRAINING RANGE · TUTORIAL';
+      } else if (currentMode === 'br') {
         const aliveBots = E.filter(e => e.type === 'inf' && !e.dead).length;
         $('score-blue').textContent = `ALIVE: ${aliveBots + (P.hp > 0 ? 1 : 0)}`;
         $('score-red').textContent = `ZONE: ${Math.round(brState.zoneRadius)}M`;
@@ -12989,9 +14382,30 @@
         }
         $('weapon-name').textContent = w.n;
         $('weapon-class').textContent = w.cls;
-        $('ammo-cur').textContent = w.rl > 0 ? 'RELOAD' : w.a;
-        $('ammo-mag').textContent = w.mag;
-        $('weapon-sec-info').textContent = '';
+        $('ammo-cur').textContent = w.rl > 0 ? 'RELOAD' : (w.type === 'shield' ? (rm ? 'BRACED' : 'READY') : w.a);
+        $('ammo-mag').textContent = w.type === 'shield' ? 'SHIELD' : w.type === 'repair' ? '100%' : w.mag;
+        if (w.type === 'repair') {
+          const repairDir = new V3(0, 0, -1).applyQuaternion(camera.quaternion);
+          const lookup = findRepairTargetVehicle(camera.position, repairDir, E, P.tm, w.range || 8.5);
+          if (lookup.target) {
+            const pct = Math.max(0, Math.round((lookup.target.hp / Math.max(1, lookup.target.mhp)) * 100));
+            const vSpec = getVehicleVariantSpec(lookup.target.type, lookup.target.faction);
+            $('weapon-sec-info').textContent = `REPAIR TARGET: ${vSpec ? vSpec.name : lookup.target.type.toUpperCase()} (${pct}%)`;
+            $('weapon-sec-info').style.color = '#38bdf8';
+          } else if (lookup.enemyBlocked) {
+            $('weapon-sec-info').textContent = 'ENEMY VEHICLE — REPAIR BLOCKED';
+            $('weapon-sec-info').style.color = '#fb7185';
+          } else {
+            $('weapon-sec-info').textContent = 'AIM AT FRIENDLY VEHICLE · [LMB] REPAIR';
+            $('weapon-sec-info').style.color = '#94a3b8';
+          }
+        } else if (w.type === 'shield') {
+          $('weapon-sec-info').textContent = rm ? 'BRACED · 90% FRONTAL PROTECTION' : 'BALLISTIC SHIELD · 82% HIP / 90% BRACED';
+          $('weapon-sec-info').style.color = '#38bdf8';
+        } else {
+          $('weapon-sec-info').textContent = '';
+          $('weapon-sec-info').style.color = '';
+        }
       }
 
       const grenadeHud = $('grenade-hud');
@@ -13006,8 +14420,10 @@
         dock.dataset.vehicle = v ? v.type : 'inf';
         const reloadKey = keyLabel(keyBindings.reload);
         const interactKey = keyLabel(keyBindings.interact);
+        const lmbFootLabel = w?.type === 'repair' ? 'Repair' : w?.type === 'shield' ? 'Bash' : 'Fire';
+        const rmbFootLabel = w?.type === 'shield' ? 'Brace shield' : 'Aim / secondary';
         const markup = !v
-          ? `<span><b>WASD</b> Move</span><span><b>${keyLabel(keyBindings.sprint)}</b> Sprint</span><span><b>${keyLabel(keyBindings.jump)}</b> Jump</span><span><b>${keyLabel(keyBindings.slide)}</b> Slide</span><span><b>LMB</b> Fire</span><span><b>RMB</b> Aim / secondary</span><span><b>${reloadKey}</b> Reload</span><span><b>${keyLabel(keyBindings.grenade)}</b> Frag</span><span><b>${keyLabel(keyBindings.smoke)}</b> Smoke</span><span><b>${interactKey}</b> Use</span><span><b>${keyLabel(keyBindings.swap)} / 1 / 2</b> Slots</span><span><b>${keyLabel(keyBindings.armory)}</b> Armory</span><span><b>${keyLabel(keyBindings.pause)}</b> Pause</span>`
+          ? `<span><b>WASD</b> Move</span><span><b>${keyLabel(keyBindings.sprint)}</b> Sprint</span><span><b>${keyLabel(keyBindings.jump)}</b> Jump</span><span><b>${keyLabel(keyBindings.slide)}</b> Slide</span><span><b>LMB</b> ${lmbFootLabel}</span><span><b>RMB</b> ${rmbFootLabel}</span><span><b>${reloadKey}</b> Reload</span><span><b>${keyLabel(keyBindings.grenade)}</b> Frag</span><span><b>${keyLabel(keyBindings.smoke)}</b> Smoke</span><span><b>${interactKey}</b> Use</span><span><b>${keyLabel(keyBindings.swap)} / 1 / 2</b> Slots</span><span><b>${keyLabel(keyBindings.armory)}</b> Armory</span><span><b>${keyLabel(keyBindings.pause)}</b> Pause</span>`
           : v.type === 'sam'
           ? `<span><b>WASD</b> Drive & steer</span><span><b>Mouse</b> Aim launcher</span><span><b>LMB</b> ${isUssrVeh ? '3M9 Kub SAM' : 'SAM missiles'}</span><span><b>RMB</b> ${isUssrVeh ? '23mm AA gun' : '20mm CIWS'}</span><span><b>${reloadKey}</b> Reload</span><span><b>${interactKey}</b> Exit</span><span><b>${keyLabel(keyBindings.pause)}</b> Pause</span>`
           : v.type === 'tank'
@@ -13427,6 +14843,116 @@
 
         // Supply Pickups
         const playerPos = P.veh ? P.veh.p : P.p;
+
+        // Base C-RAM & Ground Missile Batteries (Team modes only — disabled in FFA, BR, and Tutorial)
+        if (!matchEnded && !tutorialMode && currentMode !== 'ffa' && currentMode !== 'br' && !brState.active) {
+          const canSimDefenses = !networked || networkHost;
+          for (const def of BASE_DEFENSES) {
+            if (def.cd > 0) def.cd -= dt;
+            if (def.radar) def.radar.rotation.y += dt * 2.1;
+            if (def.flashTimer > 0) {
+              def.flashTimer -= dt;
+              if (def.flashTimer <= 0 && def.flash) def.flash.material.opacity = 0;
+            }
+            if (def.kind === 'cram') {
+              let intercepted = false;
+              if (canSimDefenses) {
+                for (let mi = MISSILES.length - 1; mi >= 0; mi--) {
+                  const m = MISSILES[mi];
+                  if (m.team === def.team) continue;
+                  const dist = m.p.distanceTo(def.p);
+                  if (dist <= 68) {
+                    const aimYaw = Math.atan2(m.p.x - def.p.x, m.p.z - def.p.z);
+                    def.head.rotation.y = aimYaw;
+                    if (def.barrel) def.barrel.rotation.z += dt * 42;
+                    if (def.cd <= 0) {
+                      def.cd = 0.09;
+                      drawTracer(def.p.clone().add(new V3(0, 0.7, 0)), m.p, 0xfbbf24, 0.07);
+                      spawnExplosion(m.p, 2.0, 0xfbbf24, 0.22);
+                      if (def.flash) { def.flash.material.opacity = 0.95; def.flashTimer = 0.05; }
+                      scene.remove(m.m);
+                      MISSILES.splice(mi, 1);
+                      playSnd(520, 0.04, 0.12, 'sawtooth', 260);
+                    }
+                    intercepted = true;
+                    break;
+                  }
+                }
+              }
+              if (intercepted) continue;
+
+              let bestTarget = null;
+              let bestDist = 95;
+              if (P.hp > 0 && P.tm !== def.team) {
+                const d = playerPos.distanceTo(def.p);
+                if (d <= bestDist && d >= 4) {
+                  bestDist = d;
+                  bestTarget = { p: playerPos, isPlayer: true, type: P.veh ? P.veh.type : 'inf' };
+                }
+              }
+              for (const e of E) {
+                if (!e.team || e.dead || e.hp <= 0 || e.tm === def.team) continue;
+                const d = e.p.distanceTo(def.p);
+                if (d <= bestDist && d >= 4) {
+                  bestDist = d;
+                  bestTarget = e;
+                }
+              }
+              if (bestTarget) {
+                const aimYaw = Math.atan2(bestTarget.p.x - def.p.x, bestTarget.p.z - def.p.z);
+                def.head.rotation.y = aimYaw;
+                if (def.barrel) def.barrel.rotation.z += dt * 42;
+                if (canSimDefenses && def.cd <= 0) {
+                  def.cd = 0.11;
+                  const muzzlePos = def.p.clone().add(new V3(Math.sin(aimYaw) * 2.1, 0.72, Math.cos(aimYaw) * 2.1));
+                  const targetAim = bestTarget.p.clone().add(new V3(0, bestTarget.type === 'inf' ? 1.0 : 1.3, 0));
+                  const dir = targetAim.sub(muzzlePos).normalize();
+                  dir.x += rnd(-0.02, 0.02);
+                  dir.y += rnd(-0.02, 0.02);
+                  dir.z += rnd(-0.02, 0.02);
+                  spawnBullet(muzzlePos, dir.normalize(), 13, { tm: def.team, nm: def.team === 0 ? 'USA C-RAM' : 'USSR C-RAM' }, 380, null, false, def.team, true, '20mm');
+                  if (def.flash) { def.flash.material.opacity = 0.95; def.flashTimer = 0.05; }
+                }
+              } else {
+                def.sweepAngle += dt * 0.65;
+                def.head.rotation.y = def.sweepAngle;
+              }
+            } else if (def.kind === 'missile') {
+              let bestTarget = null;
+              let bestDist = 112;
+              if (P.hp > 0 && P.tm !== def.team) {
+                const d = playerPos.distanceTo(def.p);
+                if (d <= bestDist && d >= 10) {
+                  bestDist = d;
+                  bestTarget = P.veh || { p: P.p, hp: P.hp, get dead() { return P.hp <= 0; }, type: 'inf' };
+                }
+              }
+              for (const e of E) {
+                if (!e.team || e.dead || e.hp <= 0 || e.tm === def.team) continue;
+                const d = e.p.distanceTo(def.p);
+                if (d <= bestDist && d >= 10) {
+                  bestDist = d;
+                  bestTarget = e;
+                }
+              }
+              if (bestTarget) {
+                const aimYaw = Math.atan2(bestTarget.p.x - def.p.x, bestTarget.p.z - def.p.z);
+                def.head.rotation.y = aimYaw;
+                if (canSimDefenses && def.cd <= 0) {
+                  def.cd = 4.2;
+                  const launchOrigin = def.p.clone().add(new V3(0, 1.3, 0));
+                  const launchDir = bestTarget.p.clone().add(new V3(0, 1.4, 0)).sub(launchOrigin).normalize();
+                  const mType = (bestTarget.type === 'heli' || bestTarget.displayType === 'heli') ? 'sam' : 'at';
+                  launchMissile(mType, launchOrigin, launchDir, bestTarget, def.team, { tm: def.team, nm: def.team === 0 ? 'USA SAM BATTERY' : 'USSR SAM BATTERY' });
+                }
+              } else {
+                def.sweepAngle += dt * 0.4;
+                def.head.rotation.y = def.sweepAngle;
+              }
+            }
+          }
+        }
+
         // Anti-Spawncamp: Enemy Base Defense Zone (Team modes only — disabled in FFA and Battle Royale)
         if (currentMode !== 'ffa' && currentMode !== 'br' && !brState.active && B && B[1 - P.tm] && P.hp > 0) {
           const eb = B[1 - P.tm];
@@ -13640,8 +15166,13 @@
     if (urlParams.get('autostart') === '1') {
       const requestedMode = urlParams.get('mode');
       if (requestedMode && MODES[requestedMode]) currentMode = requestedMode;
-      finishLoadingIntro();
+      finishLoadingIntro(true);
       startMatch();
+      if (supportsTouchControls) enterGameplayControls();
+      else isLocked = true;
+    } else if (urlParams.get('tutorial') === '1') {
+      finishLoadingIntro(true);
+      startTutorial();
       if (supportsTouchControls) enterGameplayControls();
       else isLocked = true;
     }

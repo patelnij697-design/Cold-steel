@@ -35,7 +35,7 @@ let activePlayers = 0;
    PERSISTENT USER ACCOUNTS & LEADERBOARD STORAGE
    ------------------------------------------------------------------------- */
 const DATA_DIR = path.join(__dirname, 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const USERS_FILE = process.env.USERS_FILE ? path.resolve(process.env.USERS_FILE) : path.join(DATA_DIR, 'users.json');
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -50,12 +50,19 @@ const defaultLeaderboard = [
 ];
 
 const users = new Map();
+function ensureUserSocial(user) {
+  if (!user || typeof user !== 'object') return user;
+  if (!Array.isArray(user.friends)) user.friends = [];
+  if (!Array.isArray(user.friendRequestsIncoming)) user.friendRequestsIncoming = [];
+  if (!Array.isArray(user.friendRequestsOutgoing)) user.friendRequestsOutgoing = [];
+  return user;
+}
 try {
   if (fs.existsSync(USERS_FILE)) {
     const raw = fs.readFileSync(USERS_FILE, 'utf8');
     const parsed = JSON.parse(raw);
     for (const [k, v] of Object.entries(parsed)) {
-      users.set(k.toLowerCase(), v);
+      users.set(k.toLowerCase(), ensureUserSocial(v));
     }
   }
 } catch (e) {
@@ -78,7 +85,7 @@ if (users.size === 0) {
   for (const bot of defaultLeaderboard) {
     const salt = randomBytes(16).toString('hex');
     const hash = scryptSync('operator_bot_pass', salt, 64).toString('hex');
-    users.set(bot.username.toLowerCase(), {
+    users.set(bot.username.toLowerCase(), ensureUserSocial({
       username: bot.username,
       passwordHash: `${salt}:${hash}`,
       createdAt: Date.now() - 86400000,
@@ -93,12 +100,56 @@ if (users.size === 0) {
         operatorLevel: bot.operatorLevel,
         appearance: bot.appearance
       }
-    });
+    }));
   }
   saveUsers();
 }
 
 const activeSessions = new Map();
+const onlineAccounts = new Map();
+
+function buildFriendsPayload(user) {
+  ensureUserSocial(user);
+  const enrich = key => {
+    const u = users.get(key);
+    const live = onlineAccounts.get(key);
+    return {
+      username: u?.username || key,
+      online: Boolean(live),
+      roomCode: live?.roomKind === 'private' ? live.roomId : null,
+      roomKind: live?.roomKind || null,
+      operatorLevel: u?.stats?.operatorLevel || 1,
+      appearance: u?.stats?.appearance || 'cobalt'
+    };
+  };
+  return {
+    friends: user.friends.map(k => enrich(k.toLowerCase())),
+    incoming: user.friendRequestsIncoming.map(k => enrich(k.toLowerCase())),
+    outgoing: user.friendRequestsOutgoing.map(k => enrich(k.toLowerCase()))
+  };
+}
+
+function notifyAccountFriends(...userKeys) {
+  const targets = new Set();
+  for (const rawKey of userKeys) {
+    if (!rawKey) continue;
+    const key = String(rawKey).toLowerCase();
+    const user = users.get(key);
+    targets.add(key);
+    if (!user) continue;
+    ensureUserSocial(user);
+    for (const f of user.friends) targets.add(f);
+    for (const f of user.friendRequestsIncoming) targets.add(f);
+    for (const f of user.friendRequestsOutgoing) targets.add(f);
+  }
+  for (const tKey of targets) {
+    const live = onlineAccounts.get(tKey);
+    const tUser = users.get(tKey);
+    if (live && tUser) {
+      io.to(live.socketId).emit('friends:updated', buildFriendsPayload(tUser));
+    }
+  }
+}
 
 function hashPassword(password, salt = randomBytes(16).toString('hex')) {
   const hash = scryptSync(password, salt, 64).toString('hex');
@@ -143,7 +194,7 @@ app.post('/api/auth/register', (req, res) => {
   if (users.has(key)) {
     return res.status(400).json({ error: 'Username is already taken. Please choose another.' });
   }
-  const user = {
+  const user = ensureUserSocial({
     username,
     passwordHash: hashPassword(password),
     createdAt: Date.now(),
@@ -158,7 +209,7 @@ app.post('/api/auth/register', (req, res) => {
       operatorLevel: 1,
       appearance: 'cobalt'
     }
-  };
+  });
   users.set(key, user);
   saveUsers();
 
@@ -210,6 +261,89 @@ app.post('/api/stats/sync', (req, res) => {
   user.stats.operatorLevel = Math.max(1, Math.min(50, Math.floor(user.stats.combatScore / 1000) + 1));
   saveUsers();
   res.json({ ok: true, stats: user.stats });
+});
+
+app.get('/api/friends', (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) return res.status(401).json({ error: 'Log in to manage friends.' });
+  res.json({ ok: true, ...buildFriendsPayload(user) });
+});
+
+app.post('/api/friends/request', (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) return res.status(401).json({ error: 'Log in to send friend requests.' });
+  ensureUserSocial(user);
+  const myKey = user.username.toLowerCase();
+  const targetName = String(req.body?.username || '').trim();
+  const targetKey = targetName.toLowerCase();
+  if (!targetKey) return res.status(400).json({ error: 'Enter an operator username.' });
+  if (targetKey === myKey) return res.status(400).json({ error: 'You cannot add yourself as a friend.' });
+  const target = users.get(targetKey);
+  if (!target) return res.status(404).json({ error: `Operator "${targetName}" was not found.` });
+  ensureUserSocial(target);
+
+  if (user.friends.includes(targetKey)) {
+    return res.status(400).json({ error: `${target.username} is already on your friends list.` });
+  }
+  if (user.friendRequestsIncoming.includes(targetKey)) {
+    user.friendRequestsIncoming = user.friendRequestsIncoming.filter(k => k !== targetKey);
+    target.friendRequestsOutgoing = target.friendRequestsOutgoing.filter(k => k !== myKey);
+    user.friends.push(targetKey);
+    if (!target.friends.includes(myKey)) target.friends.push(myKey);
+    saveUsers();
+    notifyAccountFriends(myKey, targetKey);
+    return res.json({ ok: true, status: 'accepted', ...buildFriendsPayload(user) });
+  }
+  if (user.friendRequestsOutgoing.includes(targetKey)) {
+    return res.status(400).json({ error: `Friend request already sent to ${target.username}.` });
+  }
+  user.friendRequestsOutgoing.push(targetKey);
+  if (!target.friendRequestsIncoming.includes(myKey)) target.friendRequestsIncoming.push(myKey);
+  saveUsers();
+  notifyAccountFriends(myKey, targetKey);
+  res.json({ ok: true, status: 'pending', ...buildFriendsPayload(user) });
+});
+
+app.post('/api/friends/respond', (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) return res.status(401).json({ error: 'Log in to respond to friend requests.' });
+  ensureUserSocial(user);
+  const myKey = user.username.toLowerCase();
+  const targetKey = String(req.body?.username || '').trim().toLowerCase();
+  const action = req.body?.action;
+  if (!targetKey || !['accept', 'decline'].includes(action)) {
+    return res.status(400).json({ error: 'Invalid friend request response.' });
+  }
+  const target = users.get(targetKey);
+  user.friendRequestsIncoming = user.friendRequestsIncoming.filter(k => k !== targetKey);
+  if (target) {
+    ensureUserSocial(target);
+    target.friendRequestsOutgoing = target.friendRequestsOutgoing.filter(k => k !== myKey);
+    if (action === 'accept') {
+      if (!user.friends.includes(targetKey)) user.friends.push(targetKey);
+      if (!target.friends.includes(myKey)) target.friends.push(myKey);
+    }
+  }
+  saveUsers();
+  notifyAccountFriends(myKey, targetKey);
+  res.json({ ok: true, ...buildFriendsPayload(user) });
+});
+
+app.post('/api/friends/remove', (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) return res.status(401).json({ error: 'Log in to manage friends.' });
+  ensureUserSocial(user);
+  const myKey = user.username.toLowerCase();
+  const targetKey = String(req.body?.username || '').trim().toLowerCase();
+  user.friends = user.friends.filter(k => k !== targetKey);
+  const target = users.get(targetKey);
+  if (target) {
+    ensureUserSocial(target);
+    target.friends = target.friends.filter(k => k !== myKey);
+  }
+  saveUsers();
+  notifyAccountFriends(myKey, targetKey);
+  res.json({ ok: true, ...buildFriendsPayload(user) });
 });
 
 app.get('/api/leaderboard', (_req, res) => {
@@ -408,12 +542,59 @@ io.on('connection', socket => {
     if (!room.hostId) room.hostId = socket.id;
     socket.data.roomId = room.id;
     socket.join(room.id);
+    if (socket.data.accountKey && onlineAccounts.has(socket.data.accountKey)) {
+      const live = onlineAccounts.get(socket.data.accountKey);
+      live.roomId = room.id;
+      live.roomKind = room.kind;
+      notifyAccountFriends(socket.data.accountKey);
+    }
     if (room.kind !== 'private' && !room.matchConfig) {
       schedulePublicMatch(room, { mode: request.mode, map: request.map, difficulty: request.difficulty });
     }
     acknowledge({ ...roomSummary(room), player });
     socket.to(room.id).emit('player:joined', player);
     sendPresence(room);
+  });
+
+  socket.on('auth:identify', payload => {
+    const token = typeof payload?.token === 'string' ? payload.token : null;
+    const prevKey = socket.data.accountKey;
+    if (prevKey && onlineAccounts.get(prevKey)?.socketId === socket.id) {
+      onlineAccounts.delete(prevKey);
+      notifyAccountFriends(prevKey);
+    }
+    if (!token || !activeSessions.has(token)) {
+      socket.data.accountKey = null;
+      return;
+    }
+    const key = activeSessions.get(token);
+    const user = users.get(key);
+    if (!user) return;
+    socket.data.accountKey = key;
+    const room = socket.data.roomId ? rooms.get(socket.data.roomId) : null;
+    onlineAccounts.set(key, {
+      socketId: socket.id,
+      username: user.username,
+      roomId: room ? room.id : null,
+      roomKind: room ? room.kind : null
+    });
+    notifyAccountFriends(key);
+  });
+
+  socket.on('friends:invite', payload => {
+    const senderKey = socket.data.accountKey;
+    if (!senderKey || !rateAllowed(socket, 'lastFriendInvite', 1000)) return;
+    const sender = users.get(senderKey);
+    const targetKey = typeof payload?.username === 'string' ? payload.username.trim().toLowerCase() : '';
+    if (!sender || !targetKey || !sender.friends.includes(targetKey)) return;
+    const targetLive = onlineAccounts.get(targetKey);
+    const room = socket.data.roomId ? rooms.get(socket.data.roomId) : null;
+    if (!targetLive || !room) return;
+    io.to(targetLive.socketId).emit('friends:invite', {
+      from: sender.username,
+      roomCode: room.kind === 'private' ? room.id : null,
+      roomKind: room.kind
+    });
   });
 
   socket.on('player:state', state => {
@@ -532,11 +713,16 @@ io.on('connection', socket => {
     if (!vector.every(Number.isFinite) || vector.some(value => Math.abs(value) > 1000)) return;
     if (action.kind === 'shot') {
       if (!Number.isFinite(action.damage) || action.damage < 0 || action.damage > 1000) return;
+    } else if (action.kind === 'repair') {
+      if (!Number.isFinite(action.heal) || action.heal <= 0 || action.heal > 200) return;
+      if (action.targetId != null && typeof action.targetId !== 'string') return;
+    } else if (action.kind === 'bash') {
+      if (!Number.isFinite(action.damage) || action.damage <= 0 || action.damage > 150) return;
     } else if (action.kind === 'missile') {
       if (!['at', 'aa', 'agm', 'sam', 'sam_kub', 'shell_120', 'shell_125'].includes(action.missileType)) return;
       if (action.targetId != null && typeof action.targetId !== 'string') return;
     } else if (action.kind === 'grenade') {
-      if (!['frag', 'smoke'].includes(action.grenadeType)) return;
+      if (!['frag', 'smoke', '40mm'].includes(action.grenadeType)) return;
     } else {
       return;
     }
@@ -593,6 +779,11 @@ io.on('connection', socket => {
   });
 
   socket.on('disconnect', () => {
+    const key = socket.data.accountKey;
+    if (key && onlineAccounts.get(key)?.socketId === socket.id) {
+      onlineAccounts.delete(key);
+      notifyAccountFriends(key);
+    }
     leaveRoom(socket);
     sendPresence();
   });
@@ -628,6 +819,12 @@ function leaveRoom(socket) {
   }
   socket.leave(room.id);
   socket.data.roomId = null;
+  if (socket.data.accountKey && onlineAccounts.has(socket.data.accountKey)) {
+    const live = onlineAccounts.get(socket.data.accountKey);
+    live.roomId = null;
+    live.roomKind = null;
+    notifyAccountFriends(socket.data.accountKey);
+  }
 }
 
 io.on('connection', socket => {
