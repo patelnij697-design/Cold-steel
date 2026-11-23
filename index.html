@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <title>Cold Steel</title>
   <meta name="description" content="Tactical 3D combat shooter with infantry, tanks, helicopters, capture the flag, and customizable loadouts.">
   <meta property="og:title" content="Cold Steel">
@@ -36,10 +36,27 @@
       background: #090d12;
       font-family: var(--font-mono);
       color: #e2e8f0;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
       user-select: none;
       -webkit-user-select: none;
     }
-    canvas#webgl { display: block; width: 100%; height: 100%; }
+    button, a, input, select, textarea, label, .tactical-card, .appearance-choice, .btn-diff, .menu-modal, .hud-layer {
+      touch-action: manipulation;
+    }
+    .modal-box {
+      touch-action: pan-y;
+    }
+    canvas#webgl {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    #loading-screen, #mobile-controls {
+      touch-action: none;
+    }
     .hud-layer {
       position: fixed;
       pointer-events: none;
@@ -1206,13 +1223,15 @@
       #leaderboard-modal table { min-width: 480px; }
       #leaderboard-modal div[style*="overflow-y:auto"] { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
     }
-    @media (pointer: coarse) {
-      body { touch-action:manipulation; }
+    @media (pointer: coarse), (max-width: 768px) {
+      html, body { touch-action: manipulation; overscroll-behavior: none; }
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
       .modal-box {
         max-height:calc(100vh - 20px);
         overflow-y:auto;
         overscroll-behavior:contain;
         -webkit-overflow-scrolling:touch;
+        touch-action:pan-y;
       }
       @supports (height: 100dvh) { .modal-box { max-height:calc(100dvh - 20px); } }
     }
@@ -7736,6 +7755,35 @@
        INPUT HANDLING
        ------------------------------------------------------------------------- */
     const K = {};
+    // Prevent browser double-tap zoom and multi-touch pinch zoom from locking the viewport
+    let lastNonControlTouchEnd = 0;
+    document.addEventListener('dblclick', e => {
+      if (!['INPUT', 'TEXTAREA'].includes(e.target?.tagName)) e.preventDefault();
+    }, { passive: false });
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(evtName => {
+      document.addEventListener(evtName, e => e.preventDefault(), { passive: false });
+    });
+    document.addEventListener('touchstart', e => {
+      if (e.touches && e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchmove', e => {
+      if (e.touches && e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchend', e => {
+      const target = e.target;
+      const isInteractiveControl = target?.closest?.('button, a, input, select, textarea, label, .tactical-card, .appearance-choice, .btn-diff');
+      if (!isInteractiveControl) {
+        const nowTs = Date.now();
+        if (nowTs - lastNonControlTouchEnd <= 350) {
+          e.preventDefault();
+        }
+        lastNonControlTouchEnd = nowTs;
+      }
+    }, { passive: false });
+    window.addEventListener('wheel', e => {
+      if (e.ctrlKey) e.preventDefault();
+    }, { passive: false });
+
     const mobileMissileButton = $('mobile-action-pad').querySelector('[data-tap="missile"]');
     let isLocked = false, lm = 0, rm = 0, lc = 0;
     let mobileControlsActive = false;

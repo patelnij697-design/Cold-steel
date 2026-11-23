@@ -167,6 +167,10 @@ test('serves the multiplayer lobby and Socket.IO browser client', async () => {
   assert.match(html, /brState\.peaceTimer = 30/);
   assert.match(html, /function mkBaseCRAM/);
   assert.match(html, /function mkBaseMissileBattery/);
+  assert.match(html, /<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">/);
+  assert.match(html, /canvas#webgl\s*\{[\s\S]*?touch-action:\s*none;/);
+  assert.match(html, /document\.addEventListener\('dblclick'/);
+  assert.match(html, /'gesturestart',\s*'gesturechange',\s*'gestureend'/);
 
   const packageInfo = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   assert.equal(packageInfo.version, '1.3.00');
